@@ -1,7 +1,9 @@
 from typing import Dict, Tuple, List
 import re
+from collections import Counter
 
 import torch
+from transformers import PreTrainedTokenizerBase
 from transformers.modeling_utils import PreTrainedModel
 
 
@@ -53,6 +55,131 @@ class DeepSeekMoELogger:
         for h in self.hook_handles:
             h.remove()
         self.hook_handles.clear()
+
+
+class RoutingStatisticsTracker:
+    def __init__(
+        self,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizerBase,
+    ):
+        self.model = model
+        self.tok = tokenizer
+        cfg = model.config
+        self.vocab_size = self.tok.vocab_size
+        self.sequence_length = cfg.max_position_embeddings
+        self.num_layers = cfg.num_hidden_layers
+        self.num_experts = cfg.n_routed_experts
+
+        # Counter to store flattened (token,pos,layer,expert) -> count
+        self.counts = Counter()
+
+    def _flatten_idx(
+        self,
+        tok_ids: torch.Tensor,
+        pos_ids: torch.Tensor,
+        layer_ids: torch.Tensor,
+        exp_ids: torch.Tensor,
+    ) -> torch.Tensor:
+        """Flatten 4D indices into 1D long tensor."""
+        return (
+            (tok_ids * self.sequence_length + pos_ids) * self.num_layers + layer_ids
+        ) * self.num_experts + exp_ids
+
+    def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
+        """
+        Update internal counts from one model forward pass.
+
+        Args:
+            batch: Dict with "input_ids" [B, S]
+            routing_logs: Dict[layer_num] -> {"indices": [B, S, K]}
+        """
+        input_ids = batch["input_ids"].to(torch.long)  # (B, S)
+        device = input_ids.device
+        B, S = input_ids.shape
+
+        pos_base = torch.arange(S, device=device).expand(B, S)  # (B, S)
+
+        for _, info in routing_logs.items():
+            indices = info["indices"]  # (B, S, K)
+            layer_num = info["layer_num"]
+            K = indices.size(-1)
+
+            # Expand all indices to (B, S, K)
+            toks = input_ids.unsqueeze(-1).expand(B, S, K)  # (B, S, K)
+            poss = pos_base.unsqueeze(-1).expand(B, S, K)  # (B, S, K)
+            lays = torch.full_like(toks, fill_value=layer_num)
+            exps = indices
+
+            # Flatten to 1D
+            tok_1d = toks.reshape(-1).cpu()
+            pos_1d = poss.reshape(-1).cpu()
+            lay_1d = lays.reshape(-1).cpu()
+            exp_1d = exps.reshape(-1).cpu()
+
+            # Flatten to single index, collapse duplicates
+            flat = self._flatten_idx(tok_1d, pos_1d, lay_1d, exp_1d)
+            uniq, cnts = flat.unique(return_counts=True)
+
+            # Update Counter
+            for idx, c in zip(uniq.tolist(), cnts.tolist()):
+                self.counts[idx] += c
+
+    def decode(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Convert internal Counter to sparse COO tensor.
+
+        Returns:
+            indices: [4, N] int64 tensor
+            values:  [N] float32 tensor
+        """
+        if not self.counts:
+            return torch.empty(4, 0, dtype=torch.long), torch.empty(0)
+
+        keys = torch.tensor(list(self.counts.keys()), dtype=torch.long)
+        vals = torch.tensor(list(self.counts.values()), dtype=torch.float32)
+
+        # Decode flattened index
+        exp = keys % self.num_experts  # get expert id
+        keys = keys // self.num_experts
+        lay = keys % self.num_layers  # get layer id
+        keys = keys // self.num_layers
+        pos = keys % self.sequence_length  # get sequence id
+        tok = keys // self.sequence_length  # this is already the token id
+
+        indices = torch.stack([tok, pos, lay, exp], dim=0)
+        return indices, vals
+
+    def to_sparse_tensor(self) -> torch.Tensor:
+        """Return sparse COO tensor of shape [vocab_size, sequence_length, num_layers, num_routed_experts]"""
+        idxs, vals = self.decode()
+        shape = (
+            self.vocab_size,
+            self.sequence_length,
+            self.num_layers,
+            self.num_experts,
+        )
+        return torch.sparse_coo_tensor(idxs, vals, shape).coalesce()
+
+    def reset(self):
+        """Clear all accumulated counts."""
+        self.counts.clear()
+
+    def save_counter(self, path: str):
+        """
+        Dump the raw Counter to disk. Later you can reload it with:
+            counter = torch.load(path)
+        """
+        torch.save(self.counts, path)
+
+    def save_sparse(self, path: str):
+        """
+        Dump the sparse COO Tensor to disk. Later you can reload it with:
+            st = torch.load(path)       # sparse tensor
+            idxs, vals = st.indices(), st.values()
+        """
+        sparse = self.to_sparse_tensor()
+        torch.save(sparse, path)
 
 
 def update_routing_statistics(
