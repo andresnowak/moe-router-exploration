@@ -45,12 +45,18 @@ def mmlu_loader(
     Returns:
         Dict[Tuple[language, subject], DataLoader]
     """
+
+    # fmt: off
     subjects = [
-        "abstract_algebra",
-        "anatomy",
-        "business_ethics",
-        "computer_security",
-    ]
+        'abstract_algebra', 'anatomy', 'astronomy','clinical_knowledge', 'college_biology', 'college_chemistry', 'college_computer_science', 
+        'college_mathematics', 'college_medicine', 'college_physics', 'computer_security', 'conceptual_physics', 'econometrics', 
+        'elementary_mathematics', 'formal_logic', 'high_school_biology',  'high_school_chemistry', 'high_school_computer_science', 
+        'high_school_government_and_politics', 'high_school_macroeconomics', 
+        'high_school_mathematics', 'high_school_microeconomics',  'high_school_physics', 'high_school_statistics',
+        'high_school_world_history', 'international_law', 'machine_learning', 'management', 'marketing', 'philosophy', 'prehistory', 
+        'professional_accounting', 'professional_medicine',
+    ]  
+    # fmt: on
     language = "EN"
 
     result = {}
@@ -134,7 +140,7 @@ def mmlu_pro_loader(
     ds = ds.map(lambda ex: {"language": language})
 
     if max_examples is not None:
-        ds= ds.select(range(min(len(ds), max_examples)))
+        ds = ds.select(range(min(len(ds), max_examples)))
 
     # 3) Gather the set of all subjects
     subjects = ds.unique("category")

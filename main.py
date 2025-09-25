@@ -1,8 +1,8 @@
 import os
 import argparse
+import time
 
 import torch
-from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -12,7 +12,7 @@ from transformers import (
 from torch.utils.data import DataLoader
 
 from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker
-from src.utils import mmlu_loader
+from src.utils import mmlu_loader, mmlu_pro_loader
 
 
 def get_router_statistics(
@@ -70,22 +70,26 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
 
     loader_dict = None
     if "cais/mmlu" in data_name:
-        loader_dict = mmlu_loader(tok, max_examples, 8)
+        loader_dict = mmlu_loader(tok, max_examples, 16)
+    elif "TIGER-Lab/MMLU-Pro" in data_name:
+        loader_dict = mmlu_pro_loader(tok, max_examples, 16)
     else:
         raise Exception(f"{data_name} is not a valid data name")
 
     for (subject, language), loader in loader_dict.items():
-        # 2) gather routing statistics over MMLU
+        start_time = time.time()
+
+        # 2) gather routing statistics
         tracker = get_router_statistics(model, tok, routing_logger, loader)
 
         # 3) save results
         counter_path = os.path.join(
             out_dir,
-            f"{data_name.replace('/', '-')}/{language}/{subject}/routing_counter.pt",
+            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{language}/{subject}/routing_counter.pt",
         )
         sparse_path = os.path.join(
             out_dir,
-            f"{data_name.replace('/', '-')}/{language}/{subject}/routing_sparse.pt",
+            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{language}/{subject}/routing_sparse.pt",
         )
         os.makedirs(os.path.dirname(counter_path), exist_ok=True)
         os.makedirs(os.path.dirname(sparse_path), exist_ok=True)
@@ -93,7 +97,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         tracker.save_counter(counter_path)
         tracker.save_sparse(sparse_path)
 
-        print(f"Done. Processed {len(loader) or 'all'} examples.")
+        print(f"Done. Processed {len(loader.dataset) or 'all'} examples in {time.time() - start_time} seconds.")
         print(f" • raw Counter → {counter_path}")
         print(f" • sparse COO  → {sparse_path}")
 
