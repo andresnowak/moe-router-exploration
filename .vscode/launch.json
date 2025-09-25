@@ -1,0 +1,48 @@
+{
+  "configurations": [
+    {
+      "type": "debugpy",
+      "request": "launch",
+      "name": "Launch Program",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "args": [
+        "--model_name",
+        "${input:modelName}",
+        "--data_name",
+        "${input:dataName}",
+        "--out_data_dir",
+        "${input:outDataDir}",
+        "--max_examples",
+        "${input:maxExamples}"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "modelName",
+      "type": "promptString",
+      "description": "Please enter the model name or path:",
+      "default": "deepseek-ai/deepseek-moe-16b-base"
+    },
+    {
+      "id": "dataName",
+      "type": "promptString", // pickString better
+      "description": "Please enter the data name or path:",
+      "default": "cais/mmlu"
+    },
+    {
+        "id": "outDataDir",
+        "type": "promptString",
+        "description": "Please enter out directory data path:",
+        "default": "$SCRATCH/moe-router-exploration-data"
+    },
+    {
+        "id": "maxExamples",
+        "type": "promptString",
+        "description": "Please enter the maximum amount of examples:",
+        "default": "500"
+    }
+  ]
+}

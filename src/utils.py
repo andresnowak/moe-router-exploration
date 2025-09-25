@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 
 from transformers import PreTrainedTokenizer
 from datasets import load_dataset, concatenate_datasets
@@ -37,35 +37,51 @@ def mmlu_collate(batch_of_examples: List[Dict[str, Any]], tok: PreTrainedTokeniz
 
 
 def mmlu_loader(
-    tok: PreTrainedTokenizer, max_examples: int, batch_size: int = 8
-) -> DataLoader:
+    tok: PreTrainedTokenizer, max_examples: int | None, batch_size: int = 8
+) -> Dict[Tuple[str, str], DataLoader]:
+    """
+    Load MMLU datasets split by (language, subject) as a dict of DataLoaders.
+
+    Returns:
+        Dict[Tuple[language, subject], DataLoader]
+    """
     subjects = [
         "abstract_algebra",
         "anatomy",
         "business_ethics",
         "computer_security",
     ]
+    language = "EN"
 
-    datasets = [
-        load_dataset("cais/mmlu", subject, split="test") for subject in subjects
-    ]
+    result = {}
+    for subj in subjects:
+        # 1) Load test + validation
+        splits = load_dataset("cais/mmlu", subj, split=["test", "validation"])
 
-    # 3) stitch them together
-    ds = concatenate_datasets(datasets)
+        # 2) Map both splits to inject subject/language
+        ds_test = splits[0].map(lambda ex: {"subject": subj, "language": language})
+        ds_val = splits[1].map(lambda ex: {"subject": subj, "language": language})
 
-    if max_examples:
-        ds = ds.select(range(min(len(ds), max_examples)))
+        # 3) Concatenate
+        ds_subj = concatenate_datasets([ds_test, ds_val])
 
-    # Create a DataLoader with the custom collate function
-    def _collate_fn(batch):
-        return mmlu_collate(batch, tok)
+        # 4) Truncate if needed
+        if max_examples is not None:
+            ds_subj = ds_subj.select(range(min(len(ds_subj), max_examples)))
 
-    loader = DataLoader(
-        ds,
-        batch_size=batch_size,
-        shuffle=False,
-        collate_fn=_collate_fn,
-        num_workers=0,  # Keep in main thread to avoid tokenization errors
-    )
+        # 5) Wrap in DataLoader
+        def _collate_fn(batch):
+            return mmlu_collate(batch, tok)
 
-    return loader
+        loader = DataLoader(
+            ds_subj,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=_collate_fn,
+            num_workers=0,
+        )
+
+        # 6) Insert into return dict
+        result[(language, subj)] = loader
+
+    return result

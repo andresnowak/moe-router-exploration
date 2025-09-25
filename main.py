@@ -68,25 +68,34 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
     else:
         raise Exception(f"{model_name} is not a valid model name")
 
-    loader = None
+    loader_dict = None
     if "cais/mmlu" in data_name:
-        loader = mmlu_loader(tok, max_examples, 8)
+        loader_dict = mmlu_loader(tok, max_examples, 8)
     else:
         raise Exception(f"{data_name} is not a valid data name")
 
-    # 2) gather routing statistics over MMLU
-    tracker = get_router_statistics(model, tok, routing_logger, loader)
+    for (subject, language), loader in loader_dict.items():
+        # 2) gather routing statistics over MMLU
+        tracker = get_router_statistics(model, tok, routing_logger, loader)
 
-    # 3) save results
-    counter_path = os.path.join(out_dir, "mmlu_routing_counter.pt")
-    sparse_path = os.path.join(out_dir, "mmlu_routing_sparse.pt")
+        # 3) save results
+        counter_path = os.path.join(
+            out_dir,
+            f"{data_name.replace('/', '-')}/{language}/{subject}/routing_counter.pt",
+        )
+        sparse_path = os.path.join(
+            out_dir,
+            f"{data_name.replace('/', '-')}/{language}/{subject}/routing_sparse.pt",
+        )
+        os.makedirs(os.path.dirname(counter_path), exist_ok=True)
+        os.makedirs(os.path.dirname(sparse_path), exist_ok=True)
 
-    tracker.save_counter(counter_path)
-    tracker.save_sparse(sparse_path)
+        tracker.save_counter(counter_path)
+        tracker.save_sparse(sparse_path)
 
-    print(f"Done. Processed {max_examples or 'all'} examples.")
-    print(f" • raw Counter → {counter_path}")
-    print(f" • sparse COO  → {sparse_path}")
+        print(f"Done. Processed {len(loader) or 'all'} examples.")
+        print(f" • raw Counter → {counter_path}")
+        print(f" • sparse COO  → {sparse_path}")
 
 
 if __name__ == "__main__":
