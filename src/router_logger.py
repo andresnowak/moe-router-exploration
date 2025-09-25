@@ -31,7 +31,7 @@ class DeepSeekMoELogger:
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs):
             # outputs[0] = expert_indices
-            idx = outputs[0].detach().cpu()
+            idx = outputs[0].detach()
             self.routing_logs[path] = {"indices": idx, "layer_num": layer}
 
         return hook
@@ -74,17 +74,14 @@ class RoutingStatisticsTracker:
         # Counter to store flattened (token,pos,layer,expert) -> count
         self.counts = Counter()
 
+    @staticmethod
     def _flatten_idx(
-        self,
-        tok_ids: torch.Tensor,
-        pos_ids: torch.Tensor,
-        layer_ids: torch.Tensor,
-        exp_ids: torch.Tensor,
-    ) -> torch.Tensor:
+        tok_id, pos_id, layer_id, expert_id, seq_len, num_layers, num_experts
+    ):
         """Flatten 4D indices into 1D long tensor."""
         return (
-            (tok_ids * self.sequence_length + pos_ids) * self.num_layers + layer_ids
-        ) * self.num_experts + exp_ids
+            ((tok_id * seq_len) + pos_id) * num_layers + layer_id
+        ) * num_experts + expert_id
 
     def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
         """
@@ -98,30 +95,36 @@ class RoutingStatisticsTracker:
         device = input_ids.device
         B, S = input_ids.shape
 
-        pos_base = torch.arange(S, device=device).expand(B, S)  # (B, S)
+        pos = torch.arange(S, device=device).repeat(B)  # [B*S]
+        tok = input_ids.view(-1)  # [B*S]
 
         for _, info in routing_logs.items():
-            indices = info["indices"]  # (B, S, K)
+            indices = info["indices"]  # (B, S, K) [GPU]
             layer_num = info["layer_num"]
             K = indices.size(-1)
 
             # Expand all indices to (B, S, K)
-            toks = input_ids.unsqueeze(-1).expand(B, S, K)  # (B, S, K)
-            poss = pos_base.unsqueeze(-1).expand(B, S, K)  # (B, S, K)
-            lays = torch.full_like(toks, fill_value=layer_num)
-            exps = indices
+            tok_k = tok.repeat_interleave(K)  # [B*S*K]
+            pos_k = pos.repeat_interleave(K)  # [B*S*K]
+            lay_k = torch.full_like(tok_k, layer_num)  # [B*S*K]
+            exp_k = indices.view(-1)  # [B*S*K]
 
             # Flatten to 1D
-            tok_1d = toks.reshape(-1).cpu()
-            pos_1d = poss.reshape(-1).cpu()
-            lay_1d = lays.reshape(-1).cpu()
-            exp_1d = exps.reshape(-1).cpu()
+            flat = self._flatten_idx(
+                tok_k,
+                pos_k,
+                lay_k,
+                exp_k,
+                self.sequence_length,
+                self.num_layers,
+                self.num_experts,
+            ).cpu()
 
-            # Flatten to single index, collapse duplicates
-            flat = self._flatten_idx(tok_1d, pos_1d, lay_1d, exp_1d)
+            # Collapse duplicates
             uniq, cnts = flat.unique(return_counts=True)
 
             # Update Counter
+            # self.counts.update(dict(zip(uniq.tolist(), cnts.tolist())))
             for idx, c in zip(uniq.tolist(), cnts.tolist()):
                 self.counts[idx] += c
 
