@@ -11,14 +11,14 @@ from transformers import (
 )
 from torch.utils.data import DataLoader
 
-from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker
+from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker, GPTOssMoELogger, MoELogger
 from src.utils import mmlu_loader, mmlu_pro_loader
 
 
 def get_router_statistics(
     model: PreTrainedModel,
     tok: PreTrainedTokenizer,
-    routing_logger: DeepSeekMoELogger,
+    routing_logger: MoELogger,
     loader: DataLoader,
 ) -> RoutingStatisticsTracker:
     """
@@ -33,7 +33,7 @@ def get_router_statistics(
     Returns:
         A RoutingStatisticsTracker with counts filled in.
     """
-    tracker = RoutingStatisticsTracker(model, tok)
+    tracker = RoutingStatisticsTracker(model, tok, routing_logger.num_layers, routing_logger.num_experts)
 
     for batch in loader:
         batch = {
@@ -65,6 +65,8 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
     routing_logger = None
     if "deepseek-ai/deepseek-moe" in model_name:
         routing_logger = DeepSeekMoELogger(model, tok)
+    elif "openai/gpt-oss-20b":
+        routing_logger = GPTOssMoELogger(model, tok)
     else:
         raise Exception(f"{model_name} is not a valid model name")
 
@@ -75,6 +77,8 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmlu_pro_loader(tok, max_examples, 16)
     else:
         raise Exception(f"{data_name} is not a valid data name")
+
+    print("Starting...")
 
     for (subject, language), loader in loader_dict.items():
         start_time = time.time()

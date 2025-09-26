@@ -1,26 +1,27 @@
 from typing import Dict, Tuple, List
 import re
 from collections import Counter
+from abc import ABC, abstractmethod
 
 import torch
 from transformers import PreTrainedTokenizerBase
 from transformers.modeling_utils import PreTrainedModel
 
 
-class DeepSeekMoELogger:
+class MoELogger(ABC):
     def __init__(
         self,
         model: PreTrainedModel,
         tokenizer,  # to get vocab_size
     ):
         self.model = model
-        cfg = model.config
 
-        # shapes for your stats tensor:
+        # Placeholders
+        self.num_layers = 0
+        self.top_k_experts = 0
+        self.num_experts = 0
+    
         self.vocab_size = tokenizer.vocab_size
-        self.num_layers = cfg.num_hidden_layers
-        self.top_k_experts = cfg.num_experts_per_tok
-        self.num_experts = cfg.n_routed_experts
 
         # routing_logs: holds the last-forward for each gate path
         self.routing_logs: Dict[str, Dict[str, torch.Tensor | int]] = {}
@@ -28,9 +29,37 @@ class DeepSeekMoELogger:
         # register once
         self.hook_handles = self._register_hooks()
 
+    @abstractmethod
+    def _make_hook(self, path: str, layer: int):
+        pass
+
+    @abstractmethod
+    def _register_hooks(self) -> List[torch.utils.hooks.RemovableHandle]:
+        pass
+
+    def clear_logs(self):
+        # just clear for the _next_ forward
+        self.routing_logs.clear()
+
+    def remove_hooks(self):
+        for h in self.hook_handles:
+            h.remove()
+        self.hook_handles.clear()
+
+
+class DeepSeekMoELogger(MoELogger):
+    def __init__(self, model: PreTrainedModel, tokenizer):
+        super().__init__(model, tokenizer)
+
+        # shapes for your stats tensor:
+        cfg = model.config
+
+        self.num_layers = cfg.num_hidden_layers
+        self.top_k_experts = cfg.num_experts_per_tok
+        self.num_experts = cfg.n_routed_experts
+
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs):
-            # outputs[0] = expert_indices
             idx = outputs[0].detach()
             self.routing_logs[path] = {"indices": idx, "layer_num": layer}
 
@@ -47,14 +76,35 @@ class DeepSeekMoELogger:
                 handles.append(h)
         return handles
 
-    def clear_logs(self):
-        # just clear for the _next_ forward
-        self.routing_logs.clear()
 
-    def remove_hooks(self):
-        for h in self.hook_handles:
-            h.remove()
-        self.hook_handles.clear()
+class GPTOssMoELogger(MoELogger):
+    def __init__(self, model: PreTrainedModel, tokenizer):
+        super().__init__(model, tokenizer)
+
+        # shapes for your stats tensor:
+        cfg = model.config
+
+        self.num_layers = cfg.num_hidden_layers
+        self.top_k_experts = cfg.num_experts_per_tok
+        self.num_experts = cfg.num_local_experts
+
+    def _make_hook(self, path: str, layer: int):
+        def hook(module, inputs, outputs):
+            _, topk_idx = torch.topk(outputs[1], k=self.top_k_experts, dim=-1)
+            self.routing_logs[path] = {"indices": topk_idx.detach(), "layer_num": layer}
+
+        return hook
+
+    def _register_hooks(self) -> List[torch.utils.hooks.RemovableHandle]:
+        handles = []
+        # find all MoEGate modules and parse layer number from name
+        for name, module in self.model.named_modules():
+            if module.__class__.__name__ == "GptOssMLP":
+                m = re.search(r"layers\.(\d+)", name)
+                layer = int(m.group(1)) if m else -1
+                h = module.register_forward_hook(self._make_hook(name, layer))
+                handles.append(h)
+        return handles
 
 
 class RoutingStatisticsTracker:
@@ -62,14 +112,16 @@ class RoutingStatisticsTracker:
         self,
         model: PreTrainedModel,
         tokenizer: PreTrainedTokenizerBase,
+        num_layers: int,
+        num_experts: int,
     ):
         self.model = model
         self.tok = tokenizer
         cfg = model.config
         self.vocab_size = self.tok.vocab_size
         self.sequence_length = cfg.max_position_embeddings
-        self.num_layers = cfg.num_hidden_layers
-        self.num_experts = cfg.n_routed_experts
+        self.num_layers = num_layers
+        self.num_experts = num_experts
 
         # Counter to store flattened (token,pos,layer,expert) -> count
         self.counts = Counter()

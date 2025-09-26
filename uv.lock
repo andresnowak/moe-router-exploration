@@ -1070,6 +1070,20 @@ wheels = [
 ]
 
 [[package]]
+name = "kernels"
+version = "0.10.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "packaging" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f6/66/49d1c53a5acd80a4176dbda2a4649dfd662e1b528ff5cf4d06896791f20c/kernels-0.10.2.tar.gz", hash = "sha256:d290d82639aa3da0abc9a5e3bd867a62447971c86a37bb277388d0fdadcb7b6e", size = 45273, upload-time = "2025-09-22T18:15:48.717Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cc/0c/fd99b94527cf6daaca3eab21eb8dad63c1b86d86efd0eb6f23d1ef1bcf3c/kernels-0.10.2-py3-none-any.whl", hash = "sha256:684efe1d6de19f20fd7eb4452691443664ea796f6af28cbe7fe9f73a5a792fff", size = 38197, upload-time = "2025-09-22T18:15:47.456Z" },
+]
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1315,11 +1329,13 @@ dependencies = [
     { name = "datasets" },
     { name = "einops" },
     { name = "jupyter" },
+    { name = "kernels" },
     { name = "marimo" },
     { name = "plotly" },
     { name = "seaborn" },
     { name = "torch" },
     { name = "transformers" },
+    { name = "triton" },
 ]
 
 [package.metadata]
@@ -1328,11 +1344,13 @@ requires-dist = [
     { name = "datasets", specifier = ">=4.1.1" },
     { name = "einops", specifier = ">=0.8.1" },
     { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "kernels", specifier = ">=0.10.2" },
     { name = "marimo", specifier = ">=0.16.0" },
     { name = "plotly", specifier = ">=6.3.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "torch", specifier = ">=2.8.0" },
     { name = "transformers", specifier = ">=4.56.2" },
+    { name = "triton", specifier = ">=3.4.0" },
 ]
 
 [[package]]

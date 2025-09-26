@@ -9,11 +9,13 @@ dependencies = [
     "datasets>=4.1.1",
     "einops>=0.8.1",
     "jupyter>=1.1.1",
+    "kernels>=0.10.2",
     "marimo>=0.16.0",
     "plotly>=6.3.0",
     "seaborn>=0.13.2",
     "torch>=2.8.0",
     "transformers>=4.56.2",
+    "triton>=3.4.0",
 ]
 
 [project.scripts]

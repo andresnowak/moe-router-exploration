@@ -13,3 +13,6 @@ wheels/
 .vscode/*
 
 !.vscode/launch.json
+
+# slurm
+logs/
