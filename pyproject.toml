@@ -3,7 +3,7 @@ name = "moe-router-exploration"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "accelerate>=1.10.1",
     "datasets>=4.1.1",
@@ -15,8 +15,15 @@ dependencies = [
     "seaborn>=0.13.2",
     "torch>=2.8.0",
     "transformers>=4.56.2",
-    "triton>=3.4.0",
+    # on aarch64 Linux, build Triton from the GitHub tag:
+    'triton @ git+https://github.com/openai/triton.git@v3.4.0; sys_platform == "linux" and platform_machine == "aarch64"',
+    # on x86_64 Linux, grab Triton from PyPI:
+    'triton==3.4.0; sys_platform == "linux" and platform_machine == "x86_64"',
 ]
 
-[project.scripts]
-notebook = "jupyter notebook --no-browser --ip 0.0.0.0 --port 8888"
+
+[tool.uv]
+environments = [
+  "sys_platform == 'linux' and platform_machine == 'x86_64'",
+  "sys_platform == 'linux' and platform_machine == 'aarch64'"
+]
