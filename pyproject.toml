@@ -3,7 +3,7 @@ name = "moe-router-exploration"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "accelerate>=1.10.1",
     "datasets>=4.1.1",
@@ -13,17 +13,39 @@ dependencies = [
     "marimo>=0.16.0",
     "plotly>=6.3.0",
     "seaborn>=0.13.2",
-    "torch>=2.8.0",
     "transformers>=4.56.2",
-    # on aarch64 Linux, build Triton from the GitHub tag:
-    'triton @ git+https://github.com/openai/triton.git@v3.4.0; sys_platform == "linux" and platform_machine == "aarch64"',
-    # on x86_64 Linux, grab Triton from PyPI:
+
+    # 'torch>=2.8.0; sys_platform == "linux" and platform_machine == "x86_64"',
+    # 'torch @ git+https://github.com/pytorch/pytorch@v2.8.0#egg=torch; sys_platform == "linux" and platform_machine == "aarch64"',
+  
+    'triton @ git+https://github.com/openai/triton.git@v3.4.0#egg=triton; sys_platform == "linux" and platform_machine == "aarch64"',
     'triton==3.4.0; sys_platform == "linux" and platform_machine == "x86_64"',
 ]
 
+# [tool.uv.sources]
+# torch = [
+#   # CUDA 12.9 for both x86_64 AND aarch64
+#   {index = "pytorch-cu129", marker = 'sys_platform == "linux"'},
+# ]
 
 [tool.uv]
 environments = [
   "sys_platform == 'linux' and platform_machine == 'x86_64'",
   "sys_platform == 'linux' and platform_machine == 'aarch64'"
 ]
+override-dependencies = [
+    "torch; sys_platform == 'never'", # so as to use the one installed in the container version
+]
+
+[[tool.uv.dependency-metadata]]
+name = "torch"
+version = "2.8.0"
+requires-dist = ["numpy<2"]
+
+# [[tool.uv.index]]
+# name = "pytorch-cu129"
+# url = "https://download.pytorch.org/whl/cu129" 
+# explicit = true
+# # simple = false
+
+# system site packages option for venv is only at runtime
