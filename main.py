@@ -12,7 +12,7 @@ from transformers import (
 from torch.utils.data import DataLoader
 
 from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker, GPTOssMoELogger, MoELogger
-from src.utils import mmlu_loader, mmlu_pro_loader
+from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader
 
 
 def get_router_statistics(
@@ -75,6 +75,8 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmlu_loader(tok, max_examples, 16)
     elif "TIGER-Lab/MMLU-Pro" in data_name:
         loader_dict = mmlu_pro_loader(tok, max_examples, 16)
+    elif "openai/MMMLU" in data_name:
+        loader_dict = mmmlu_loader(tok=tok, max_examples=max_examples, batch_size=16)
     else:
         raise Exception(f"{data_name} is not a valid data name")
 
