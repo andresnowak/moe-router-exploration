@@ -54,3 +54,77 @@ def plot_radar_plotly(df: pd.DataFrame):
     fig.update_traces(fill="toself", opacity=0.4)
     fig.update_layout(title="Expert Usage by Corpus")
     fig.show()
+
+
+def plot_bar(df: pd.DataFrame):
+    """
+    Given a DataFrame whose index are experts and whose columns are sources,
+    draws a grouped bar chart of the values.
+    """
+    experts = df.index.astype(str)
+    sources = df.columns.astype(str)
+    values = df.values
+
+    # Number of experts and sources
+    n_experts = len(experts)
+    n_sources = len(sources)
+
+    # X locations for the groups
+    x = np.arange(n_experts)
+
+    # Total width (you can tweak)
+    total_width = 0.8
+    # Width of each bar
+    bar_width = total_width / n_sources
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Plot one bar per source
+    for i, source in enumerate(sources):
+        ax.bar(
+            x + i * bar_width,
+            values[:, i],
+            width=bar_width,
+            label=source,
+            alpha=0.8
+        )
+
+    # Labels, ticks, legend
+    ax.set_title("Expert Usage by Corpus")
+    ax.set_xlabel("Expert")
+    ax.set_ylabel("Value")
+    # Center the x-tick labels under the group
+    ax.set_xticks(x + total_width/2 - bar_width/2)
+    ax.set_xticklabels(experts, rotation=45, ha="right")
+    ax.legend(title="Source")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_box(df):
+    """
+    Given a DataFrame whose index are experts and columns are subjects,
+    draws one boxplot per expert showing their distribution across subjects.
+    """
+    experts = df.index.astype(str)
+    # For each expert (row), grab the array of subject‐scores
+    data = [df.loc[e].values for e in df.index]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.boxplot(
+        data,
+        labels=experts,
+        showmeans=True,      # optionally show the mean point
+        meanline=True,        # draw the mean as a line
+        meanprops=dict(       # style for that mean‐line
+            linestyle=':',
+            color='firebrick',
+        )
+    )
+
+    ax.set_title("Expert Score Distributions Across Subjects")
+    ax.set_xlabel("Expert")
+    ax.set_ylabel("Score")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    plt.show()
