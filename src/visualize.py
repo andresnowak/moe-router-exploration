@@ -50,6 +50,7 @@ def plot_radar_plotly(df: pd.DataFrame):
         color="source",
         line_close=True,
         template="plotly_dark",
+        render_mode="svg"
     )
     fig.update_traces(fill="toself", opacity=0.4)
     fig.update_layout(title="Expert Usage by Corpus")

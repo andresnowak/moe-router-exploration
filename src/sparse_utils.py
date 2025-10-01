@@ -1,6 +1,64 @@
 from typing import Dict, List
 
 import torch
+import pandas as pd
+import os
+
+
+def create_dataframe(sparse_tensor: torch.Tensor) -> pd.DataFrame:
+    """
+    Convert a sparse COO tensor of shape
+    (vocab_size, seq_len, num_layers, num_experts)
+    into a DataFrame with all indices and counts.
+
+    Each row corresponds to a nonzero entry.
+
+    Columns: ['tok', 'pos', 'layer', 'expert', 'count']
+    """
+    # Ensure COO format
+    st = sparse_tensor.coalesce() # to remove duplicate indices
+
+    # indices: [4, N] -> transpose to [N, 4]
+    idxs = st.indices().t().cpu().numpy()
+    counts = st.values().cpu().numpy()
+
+    # Build DataFrame
+    df = pd.DataFrame(idxs, columns=["tok_id", "pos_id", "layer_id", "expert_id"])
+    df["count"] = counts
+
+    return df
+
+
+def create_dataset_routing_statisitcs_dataframe(root_path: str) -> pd.DataFrame:
+    dfs = []
+
+    for dirpath, _, filenames in os.walk(root_path):
+        if "routing_sparse.pt" in filenames:
+            candidate = os.path.join(dirpath, "routing_sparse.pt")
+
+            rel_path = os.path.relpath(candidate, root_path)
+            print(f"Found: {rel_path}")
+
+            dirs = rel_path.split("/")[:-1]  # should have subject, language and file
+            assert len(dirs) == 2
+
+            print(os.path.join(root_path, rel_path))
+            sparse_tensor = torch.load(os.path.join(root_path, rel_path))
+            print(sparse_tensor.shape)
+
+            df = create_dataframe(sparse_tensor)
+
+            df["subject"] = dirs[0]
+            df["language"] = dirs[1]
+
+            dfs.append(df)
+
+    if dfs:
+        results = pd.concat(dfs, ignore_index=True)
+    else:
+        results = pd.DataFrame()
+
+    return results
 
 
 def sum_by_expert(sparse_tensor: torch.Tensor) -> torch.Tensor:
