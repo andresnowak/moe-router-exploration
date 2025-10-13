@@ -146,17 +146,17 @@ class RoutingStatisticsTracker:
         device = input_ids.device
         B, S = input_ids.shape
 
-        pos = torch.arange(S, device=device).repeat(B)  # [B*S]
-        tok = input_ids.view(-1)  # [B*S]
+        pos = torch.arange(S, device="cpu").repeat(B)  # [B*S]
+        tok = input_ids.view(-1).cpu()  # [B*S]
 
         for _, info in routing_logs.items():
             indices = info["indices"].cpu()  # (B, S, K) [GPU]
-            layer_num = info["layer_num"].cpu()
+            layer_num = info["layer_num"]
             K = indices.size(-1) # K = self.top_k experts
 
             # Loop over each rank position separately
             for rank in range(K):
-                expert_at_rank = indices[:, :, rank].view(-1)  # [B*S]
+                expert_at_rank = indices[:, rank].view(-1)  # [B*S]
                 rank_tensor = torch.full_like(tok, rank, device="cpu")  # [B*S]
                 lay_tensor = torch.full_like(tok, layer_num, device="cpu")  # [B*S]
 
