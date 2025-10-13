@@ -120,18 +120,19 @@ class RoutingStatisticsTracker:
         self.sequence_length = cfg.max_position_embeddings
         self.num_layers = num_layers
         self.num_experts = num_experts
+        self.top_k = cfg.num_experts_per_tok
 
         # Counter to store flattened (token,pos,layer,expert) -> count
         self.counts = Counter()
 
     @staticmethod
     def _flatten_idx(
-        tok_id, pos_id, layer_id, expert_id, seq_len, num_layers, num_experts
+        tok_id, pos_id, layer_id, expert_id, rank_id, seq_len, num_layers, num_experts, top_k
     ):
-        """Flatten 4D indices into 1D long tensor."""
-        return (
+        """Flatten 5D indices into 1D long tensor."""
+        return ((
             ((tok_id * seq_len) + pos_id) * num_layers + layer_id
-        ) * num_experts + expert_id
+        ) * num_experts + expert_id) * top_k + rank_id
 
     def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
         """
@@ -149,50 +150,53 @@ class RoutingStatisticsTracker:
         tok = input_ids.view(-1)  # [B*S]
 
         for _, info in routing_logs.items():
-            indices = info["indices"]  # (B, S, K) [GPU]
-            layer_num = info["layer_num"]
-            K = indices.size(-1)
+            indices = info["indices"].cpu()  # (B, S, K) [GPU]
+            layer_num = info["layer_num"].cpu()
+            K = indices.size(-1) # K = self.top_k experts
 
-            # Expand all indices to (B, S, K)
-            tok_k = tok.repeat_interleave(K)  # [B*S*K]
-            pos_k = pos.repeat_interleave(K)  # [B*S*K]
-            lay_k = torch.full_like(tok_k, layer_num)  # [B*S*K]
-            exp_k = indices.view(-1)  # [B*S*K]
+            # Loop over each rank position separately
+            for rank in range(K):
+                expert_at_rank = indices[:, :, rank].view(-1)  # [B*S]
+                rank_tensor = torch.full_like(tok, rank, device="cpu")  # [B*S]
+                lay_tensor = torch.full_like(tok, layer_num, device="cpu")  # [B*S]
 
-            # Flatten to 1D
-            flat = self._flatten_idx(
-                tok_k,
-                pos_k,
-                lay_k,
-                exp_k,
-                self.sequence_length,
-                self.num_layers,
-                self.num_experts,
-            ).cpu()
+                # Flatten to 1D
+                flat = self._flatten_idx(
+                    tok,
+                    pos,
+                    lay_tensor,
+                    expert_at_rank, # only expert_ids with this rank in top_k
+                    rank_tensor,
+                    self.sequence_length,
+                    self.num_layers,
+                    self.num_experts,
+                    self.top_k,
+                )
 
-            # Collapse duplicates
-            uniq, cnts = flat.unique(return_counts=True)
+                # Collapse duplicates
+                uniq, cnts = flat.unique(return_counts=True)
 
-            # Update Counter
-            # self.counts.update(dict(zip(uniq.tolist(), cnts.tolist())))
-            for idx, c in zip(uniq.tolist(), cnts.tolist()):
-                self.counts[idx] += c
+                # Update Counter
+                for idx, c in zip(uniq.tolist(), cnts.tolist()):
+                    self.counts[idx] += c
 
     def decode(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Convert internal Counter to sparse COO tensor.
 
         Returns:
-            indices: [4, N] int64 tensor
+            indices: [5, N] int64 tensor
             values:  [N] float32 tensor
         """
         if not self.counts:
-            return torch.empty(4, 0, dtype=torch.long), torch.empty(0)
+            return torch.empty(5, 0, dtype=torch.long), torch.empty(0)
 
         keys = torch.tensor(list(self.counts.keys()), dtype=torch.long)
         vals = torch.tensor(list(self.counts.values()), dtype=torch.float32)  # counts
 
         # Decode flattened index
+        rank = keys % self.top_k # get rank id
+        keys = keys // self.top_k
         exp = keys % self.num_experts  # get expert id
         keys = keys // self.num_experts
         lay = keys % self.num_layers  # get layer id
@@ -200,17 +204,19 @@ class RoutingStatisticsTracker:
         pos = keys % self.sequence_length  # get sequence id
         tok = keys // self.sequence_length  # this is already the token id
 
-        indices = torch.stack([tok, pos, lay, exp], dim=0)
+        indices = torch.stack([tok, pos, lay, exp, rank], dim=0)
         return indices, vals
 
     def to_sparse_tensor(self) -> torch.Tensor:
-        """Return sparse COO tensor of shape [vocab_size, sequence_length, num_layers, num_routed_experts]"""
+        """Return sparse COO tensor of shape [vocab_size, sequence_length, num_layers, num_routed_experts, top_k_experts]"""
         idxs, vals = self.decode()
+
         shape = (
             self.vocab_size,
             self.sequence_length,
             self.num_layers,
             self.num_experts,
+            self.top_k,
         )
         return torch.sparse_coo_tensor(idxs, vals, shape).coalesce()
 
