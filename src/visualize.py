@@ -57,7 +57,7 @@ def plot_radar_plotly(df: pd.DataFrame):
     fig.show()
 
 
-def plot_bar(df: pd.DataFrame):
+def plot_bar(df: pd.DataFrame, title: str = "plot bar"):
     """
     Given a DataFrame whose index are experts and whose columns are sources,
     draws a grouped bar chart of the values.
@@ -91,7 +91,7 @@ def plot_bar(df: pd.DataFrame):
         )
 
     # Labels, ticks, legend
-    ax.set_title("Expert Usage by Corpus")
+    ax.set_title(title)
     ax.set_xlabel("Expert")
     ax.set_ylabel("Value")
     # Center the x-tick labels under the group
@@ -102,7 +102,7 @@ def plot_bar(df: pd.DataFrame):
     plt.show()
 
 
-def plot_box(df):
+def plot_box(df, title: str = "plot box"):
     """
     Given a DataFrame whose index are experts and columns are subjects,
     draws one boxplot per expert showing their distribution across subjects.
@@ -123,7 +123,7 @@ def plot_box(df):
         )
     )
 
-    ax.set_title("Expert Score Distributions Across Subjects")
+    ax.set_title(title)
     ax.set_xlabel("Expert")
     ax.set_ylabel("Score")
     plt.xticks(rotation=45, ha="right")
