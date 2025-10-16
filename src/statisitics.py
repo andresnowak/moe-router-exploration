@@ -17,10 +17,10 @@ def get_sum_subject_per_expert(df: pd.DataFrame, layer: int = 0):
 
     return df_by_expert
 
-def get_domain_specialization(df: pd.DataFrame, layer: int = 0):
+def get_domain_specialization(df: pd.DataFrame, rank: int, layer: int = 0):
     # N^(k)_{E_i, D} / N_D 
-    df_layer = df[df["layer_id"] == layer]
-    df_by_expert = df_layer.pivot_table(
+    df_filtered = df[(df["layer_id"] == layer) & (df["rank_id"] < rank)]
+    df_by_expert = df_filtered.pivot_table(
         index="expert_id",  # rows
         columns="subject",  # cols
         values="count",  # values to aggregate
@@ -28,7 +28,7 @@ def get_domain_specialization(df: pd.DataFrame, layer: int = 0):
         fill_value=0,  # replace NaN with 0
     )
 
-    total_per_subject = df_layer.groupby("subject")["count"].sum()
+    total_per_subject = df_filtered.groupby("subject")["count"].sum()
     df_by_expert  = df_by_expert.div(total_per_subject, axis=1)
 
     df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
@@ -37,10 +37,10 @@ def get_domain_specialization(df: pd.DataFrame, layer: int = 0):
     return df_by_expert
 
 
-def get_vocabulary_specialization(df: pd.DataFrame, layer: int = 0):
+def get_vocabulary_specialization(df: pd.DataFrame, rank: int, layer: int = 0):
     # N^(k)_{x, E_i} / N_x
-    df_layer = df[df["layer_id"] == layer]
-    df_by_expert = df_layer.pivot_table(
+    df_filtered = df[(df["layer_id"] == layer) & (df["rank_id"] < rank)]
+    df_by_expert = df_filtered.pivot_table(
         index="expert_id",  # rows
         columns="tok_id",  # cols
         values="count",  # values to aggregate
@@ -48,7 +48,7 @@ def get_vocabulary_specialization(df: pd.DataFrame, layer: int = 0):
         fill_value=0,  # replace NaN with 0
     )
 
-    total_per_token = df_layer.groupby("tok_id")["count"].sum()
+    total_per_token = df_filtered.groupby("tok_id")["count"].sum()
     df_by_expert = df_by_expert.div(total_per_token, axis=1)
 
     df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
@@ -57,9 +57,9 @@ def get_vocabulary_specialization(df: pd.DataFrame, layer: int = 0):
     return df_by_expert
 
 
-def get_language_specialization(df: pd.DataFrame, layer: int = 0):
+def get_language_specialization(df: pd.DataFrame, rank: int, layer: int = 0):
     # N^(k)_{E_i, L} / N_L 
-    df_layer = df[df["layer_id"] == layer]
+    df_filtered = df[(df["layer_id"] == layer) & (df["rank_id"] < rank)]
     df_by_expert = df_layer.pivot_table(
         index="expert_id",  # rows
         columns="language",  # cols
@@ -68,7 +68,7 @@ def get_language_specialization(df: pd.DataFrame, layer: int = 0):
         fill_value=0,  # replace NaN with 0
     )
 
-    total_per_subject = df_layer.groupby("language")["count"].sum()
+    total_per_subject = df_filtered.groupby("language")["count"].sum()
     df_by_expert  = df_by_expert.div(total_per_subject, axis=1)
 
     df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
