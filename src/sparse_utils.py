@@ -13,17 +13,17 @@ def create_dataframe(sparse_tensor: torch.Tensor) -> pd.DataFrame:
 
     Each row corresponds to a nonzero entry.
 
-    Columns: ['tok', 'pos', 'layer', 'expert', 'count']
+    Columns: ['tok', 'pos', 'layer', 'expert', 'rank', 'count']
     """
     # Ensure COO format
     st = sparse_tensor.coalesce() # to remove duplicate indices
 
-    # indices: [4, N] -> transpose to [N, 4]
+    # indices: [5, N] -> transpose to [N, 5]
     idxs = st.indices().t().cpu().numpy()
     counts = st.values().cpu().numpy()
 
     # Build DataFrame
-    df = pd.DataFrame(idxs, columns=["tok_id", "pos_id", "layer_id", "expert_id"])
+    df = pd.DataFrame(idxs, columns=["tok_id", "pos_id", "layer_id", "expert_id", "rank_id"])
     df["count"] = counts
 
     return df
@@ -44,7 +44,6 @@ def create_dataset_routing_statisitcs_dataframe(root_path: str) -> pd.DataFrame:
 
             print(os.path.join(root_path, rel_path))
             sparse_tensor = torch.load(os.path.join(root_path, rel_path))
-            print(sparse_tensor.shape)
 
             df = create_dataframe(sparse_tensor)
 
@@ -61,7 +60,7 @@ def create_dataset_routing_statisitcs_dataframe(root_path: str) -> pd.DataFrame:
     return results
 
 
-def sum_by_expert(sparse_tensor: torch.Tensor) -> torch.Tensor:
+def sum_by_expert(sparse_tensor: torch.Tensor, layer: int = 0) -> torch.Tensor:
     """
     Returns a 1D tensor [num_experts] where entry e is
     the sum of all sparse.values() whose expert index == e.
@@ -79,11 +78,14 @@ def sum_by_expert(sparse_tensor: torch.Tensor) -> torch.Tensor:
         A 1-D dense tensor of length `num_experts` giving
         the total summed counts for each expert.
     """
-    # indices shape [4, N]: [tok, pos, layer, expert]
+    # indices shape [5, N]: [tok, pos, layer, expert, rank]
     idxs = sparse_tensor.coalesce().indices()
     counts = sparse_tensor.coalesce().values()
     experts = idxs[3]  # shape [N]
     num_experts = sparse_tensor.shape[3]  # the expert-dimension size
+    layer_mask = idxs[2] == layer
+    counts[layer_mask]
+    experts[layer_mask]
 
     # Sum counts for each expert
     return torch.bincount(experts, weights=counts, minlength=num_experts)
@@ -94,9 +96,9 @@ def decode_sparse_indices(
 ) -> List[Dict[str, str | int]]:
     """
     Converts sparse tensor indices into readable labels.
-    Returns: list of dicts with keys 'token', 'position', 'layer', 'expert', 'count'
+    Returns: list of dicts with keys 'token', 'position', 'layer', 'expert', 'rank', 'count'
     """
-    indices = sparse_tensor.indices()  # [4 x N]
+    indices = sparse_tensor.indices()  # [5 x N]
     values = sparse_tensor.values()  # [N]
 
     data = []

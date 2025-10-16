@@ -3,8 +3,8 @@ from transformers import AutoTokenizer
 from typing import Optional, Dict
 
 
-def get_sum_subject_per_expert(df: pd.DataFrame):
-    df_by_expert = df.pivot_table(
+def get_sum_subject_per_expert(df: pd.DataFrame, layer: int = 0):
+    df_by_expert = df[df["layer_id"] == layer].pivot_table(
         index="expert_id",  # rows
         columns="subject",  # cols
         values="count",  # values to aggregate
@@ -17,11 +17,71 @@ def get_sum_subject_per_expert(df: pd.DataFrame):
 
     return df_by_expert
 
+def get_domain_specialization(df: pd.DataFrame, layer: int = 0):
+    # N^(k)_{E_i, D} / N_D 
+    df_layer = df[df["layer_id"] == layer]
+    df_by_expert = df_layer.pivot_table(
+        index="expert_id",  # rows
+        columns="subject",  # cols
+        values="count",  # values to aggregate
+        aggfunc="sum",  # sum the counts
+        fill_value=0,  # replace NaN with 0
+    )
+
+    total_per_subject = df_layer.groupby("subject")["count"].sum()
+    df_by_expert  = df_by_expert.div(total_per_subject, axis=1)
+
+    df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
+    df_by_expert.index.name = None
+
+    return df_by_expert
+
+
+def get_vocabulary_specialization(df: pd.DataFrame, layer: int = 0):
+    # N^(k)_{x, E_i} / N_x
+    df_layer = df[df["layer_id"] == layer]
+    df_by_expert = df_layer.pivot_table(
+        index="expert_id",  # rows
+        columns="tok_id",  # cols
+        values="count",  # values to aggregate
+        aggfunc="sum",  # sum the counts
+        fill_value=0,  # replace NaN with 0
+    )
+
+    total_per_token = df_layer.groupby("tok_id")["count"].sum()
+    df_by_expert = df_by_expert.div(total_per_token, axis=1)
+
+    df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
+    df_by_expert.index.name = None
+
+    return df_by_expert
+
+
+def get_language_specialization(df: pd.DataFrame, layer: int = 0):
+    # N^(k)_{E_i, L} / N_L 
+    df_layer = df[df["layer_id"] == layer]
+    df_by_expert = df_layer.pivot_table(
+        index="expert_id",  # rows
+        columns="language",  # cols
+        values="count",  # values to aggregate
+        aggfunc="sum",  # sum the counts
+        fill_value=0,  # replace NaN with 0
+    )
+
+    total_per_subject = df_layer.groupby("language")["count"].sum()
+    df_by_expert  = df_by_expert.div(total_per_subject, axis=1)
+
+    df_by_expert.index = df_by_expert.index.map(lambda x: f"E_{x}")
+    df_by_expert.index.name = None
+
+    return df_by_expert
+
 
 def get_top_n_tokens_per_expert(
     model_name: str,
     df: pd.DataFrame,
     n: int = 10,
+    layer: int = 0,
 ) -> pd.DataFrame:
     """
     Return a DataFrame of shape (num_experts, 2*n) with columns
@@ -33,7 +93,7 @@ def get_top_n_tokens_per_expert(
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     # 1) Sum counts per (expert, token)
-    df_tok = df.groupby(["expert_id", "tok_id"], as_index=False)["count"].sum()
+    df_tok = df[df["layer_id"] == layer].groupby(["expert_id", "tok_id"], as_index=False)["count"].sum()
 
     # 2) Rank tokens inside each expert
     df_tok["rank"] = (
@@ -151,9 +211,9 @@ def get_top_tokens_by_expert_layer_proportion(
     return df_out
 
 
-def get_amount_unique_tokens_per_expert(df: pd.DataFrame):
+def get_amount_unique_tokens_per_expert(df: pd.DataFrame, layer: int = 0):
     unique_per_expert = (
-        df.groupby("expert_id")["tok_id"]
+        df[df["layer_id"] == layer].groupby("expert_id")["tok_id"]
         .nunique()
         .reset_index(name="distinct_token_count")
     )
@@ -164,6 +224,23 @@ def get_amount_unique_tokens_per_expert(df: pd.DataFrame):
     unique_per_expert = unique_per_expert.set_index("expert_id")
 
     return unique_per_expert
+
+
+def get_total_tokens_per_expert(df: pd.DataFrame, layer: int = 0):
+    total_per_expert = (
+        df[df["layer_id"] == layer].groupby("expert_id")["count"]
+        .sum()
+        .reset_index(name="total_token_count")
+    )
+
+    total_per_expert["proportion"] = total_per_expert["total_token_count"] / total_per_expert["total_token_count"].sum()
+
+    total_per_expert["expert_id"] = total_per_expert["expert_id"].map(
+        lambda x: f"E_{x}"
+    )
+    total_per_expert = total_per_expert.set_index("expert_id")
+
+    return total_per_expert
 
 
 def get_amount_unique_tokens_per_expert_per_layer(df: pd.DataFrame) -> pd.DataFrame:
