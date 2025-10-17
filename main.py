@@ -10,6 +10,7 @@ from transformers import (
     PreTrainedTokenizer,
 )
 from torch.utils.data import DataLoader
+from accelerate import Accelerator
 
 from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker, GPTOssMoELogger, MoELogger
 from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader
@@ -79,10 +80,20 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmmlu_loader(tok=tok, max_examples=max_examples, batch_size=16)
     else:
         raise Exception(f"{data_name} is not a valid data name")
+    
+    accelerator = Accelerator()
+    model = accelerator.prepare(model)
 
-    print("Starting...")
+    if accelerator.is_main_process:
+        print(f"Starting on {accelerator.num_processes} processes...")
 
-    for (subject, language), loader in loader_dict.items():
+    items = list(loader_dict.items())
+    for i, ((subject, language), loader) in enumerate(items):
+        if i % accelerator.num_processes != accelerator.process_index:
+            continue
+
+        loader = accelerator.prepare(loader)
+    
         start_time = time.time()
 
         # 2) gather routing statistics

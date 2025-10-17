@@ -19,3 +19,6 @@ venv-amd
 
 # slurm
 logs/
+
+# extra
+.env

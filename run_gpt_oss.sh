@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=gpt_oss_router_statistics
-#SBATCH --time=05:00:00
+#SBATCH --time=02:00:00
 #SBATCH --nodes=1                # total number of nodes
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
-#SBATCH --gpus-per-task=1
+#SBATCH --gpus-per-task=4        # Use 4 GPUs for multi-GPU acceleration
 #SBATCH --output=logs/slurm-%x-%j.log  # if #SBATCH --error=... is not specified,
                                  # this will also contain stderr (error messages)
 
@@ -27,18 +27,18 @@ fi
 source set_threads.sh
 
 
-python main.py \
+accelerate launch --num_processes=4 main.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
-    --data_name "cais/mmlu" \
+    --data_name "cais/mmlu"
 
-python main.py \
+accelerate launch --num_processes=4 main.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
-    --data_name "TIGER-Lab/MMLU-Pro" \
+    --data_name "TIGER-Lab/MMLU-Pro"
 
-python main.py \
+accelerate launch --num_processes=4 main.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
-    --data_name "openai/MMMLU" \
+    --data_name "openai/MMMLU"
 "
