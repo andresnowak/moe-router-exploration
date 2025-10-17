@@ -1,7 +1,7 @@
 from typing import Dict, List, Any, Tuple, Optional
 
 from transformers import PreTrainedTokenizer
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
@@ -47,29 +47,18 @@ def mmlu_loader(
     """
 
     # fmt: off
-    subjects = [
-        'abstract_algebra', 'anatomy', 'astronomy','clinical_knowledge', 'college_biology', 'college_chemistry', 'college_computer_science', 
-        'college_mathematics', 'college_medicine', 'college_physics', 'computer_security', 'conceptual_physics', 'econometrics', 
-        'elementary_mathematics', 'formal_logic', 'high_school_biology',  'high_school_chemistry', 'high_school_computer_science', 
-        'high_school_government_and_politics', 'high_school_macroeconomics', 
-        'high_school_mathematics', 'high_school_microeconomics',  'high_school_physics', 'high_school_statistics',
-        'high_school_world_history', 'international_law', 'machine_learning', 'management', 'marketing', 'philosophy', 'prehistory', 
-        'professional_accounting', 'professional_medicine',
-    ]  
+    categories = {"biology":["anatomy","college_biology","high_school_biology","medical_genetics","virology","human_aging","nutrition"],"business":["business_ethics","management","marketing","public_relations","professional_accounting"],"chemistry":["college_chemistry","high_school_chemistry"],"computer_science":["college_computer_science","high_school_computer_science","computer_security","machine_learning"],"economics":["econometrics","high_school_macroeconomics","high_school_microeconomics"],"engineering":["electrical_engineering"],"health":["college_medicine","clinical_knowledge","professional_medicine","human_sexuality"],"history":["high_school_european_history","high_school_us_history","high_school_world_history","prehistory"],"law":["international_law","jurisprudence","professional_law"],"math":["abstract_algebra","college_mathematics","elementary_mathematics","high_school_mathematics","high_school_statistics"],"philosophy":["philosophy","logical_fallacies","moral_disputes","moral_scenarios","world_religions"],"physics":["astronomy","college_physics","conceptual_physics","high_school_physics"],"psychology":["high_school_psychology","professional_psychology"]}
+    subjects = [item for lst in categories.values() for item in lst]
     # fmt: on
     language = "EN"
 
     result = {}
     for subj in subjects:
-        # 1) Load test + validation
-        splits = load_dataset("cais/mmlu", subj, split=["test", "validation"])
+        # 1) Load test split only
+        ds_test = load_dataset("cais/mmlu", subj, split="test")
 
-        # 2) Map both splits to inject subject/language
-        ds_test = splits[0].map(lambda ex: {"subject": subj, "language": language})
-        ds_val = splits[1].map(lambda ex: {"subject": subj, "language": language})
-
-        # 3) Concatenate
-        ds_subj = concatenate_datasets([ds_test, ds_val])
+        # 2) Inject subject/language
+        ds_subj = ds_test.map(lambda ex: {"subject": subj, "language": language})
 
         # 4) TODO: Have to change this (because we are doing it by subject instead of total here)
         if max_examples is not None:
@@ -199,7 +188,7 @@ def mmmlu_collate(batch_of_examples: List[Dict[str, Any]], tok: PreTrainedTokeni
 
 def mmmlu_loader(
     tok: PreTrainedTokenizer,
-    languages_country: List[str] = ["AR_XY", "BN_BD", "DE_DE", "ES_LA", "FR_FR", "HI_IN", "ID_ID", "IT_IT", "JA_JP", "KO_KR", "PT_BR", "SW_KE", "YO_NG", "ZH_CN"], # fmt: skip
+    languages_country: List[str] = ["DE_DE", "ES_LA", "FR_FR", "HI_IN", "JA_JP", "KO_KR", "PT_BR", "ZH_CN"], # fmt: skip
     max_examples: Optional[int] = None,
     batch_size: int = 8,
 ) -> Dict[Tuple[str, str], DataLoader]:
@@ -208,6 +197,9 @@ def mmmlu_loader(
     one DataLoader per (language, subject).
     """
     result: Dict[Tuple[str, str], DataLoader] = {}
+
+    categories = {"biology":["anatomy","college_biology","high_school_biology","medical_genetics","virology","human_aging","nutrition"],"business":["business_ethics","management","marketing","public_relations","professional_accounting"],"chemistry":["college_chemistry","high_school_chemistry"],"computer_science":["college_computer_science","high_school_computer_science","computer_security","machine_learning"],"economics":["econometrics","high_school_macroeconomics","high_school_microeconomics"],"engineering":["electrical_engineering"],"health":["college_medicine","clinical_knowledge","professional_medicine","human_sexuality"],"history":["high_school_european_history","high_school_us_history","high_school_world_history","prehistory"],"law":["international_law","jurisprudence","professional_law"],"math":["abstract_algebra","college_mathematics","elementary_mathematics","high_school_mathematics","high_school_statistics"],"philosophy":["philosophy","logical_fallacies","moral_disputes","moral_scenarios","world_religions"],"physics":["astronomy","college_physics","conceptual_physics","high_school_physics"],"psychology":["high_school_psychology","professional_psychology"]}
+    subjects = [item for lst in categories.values() for item in lst]
 
     for language_country in languages_country:
         # 1) Load the per‐language split (hf “openai/MMMLU” uses the language
@@ -226,22 +218,29 @@ def mmmlu_loader(
             ds = ds.select(range(min(len(ds), max_examples)))
 
         # 4) Find all subjects in this language
-        subjects = ds.unique("Subject")
+        ln_subjects = ds.unique("Subject")
+        ln_subjects = list(set(ln_subjects) & set(subjects))
 
-        # 5) Build one DataLoader per subject
-        for subj in subjects:
-            ds_subj = ds.filter(lambda ex, s=subj: ex["Subject"] == s)
+        # 5) Build one DataLoader per category
+        for category, category_subjects in categories.items():
+            # Filter to only subjects in this category that exist in the dataset
+            valid_subjects = list(set(category_subjects) & set(ln_subjects))
+            if not valid_subjects:
+                continue
+
+            # Filter dataset to include all subjects in this category
+            ds_category = ds.filter(lambda ex: ex["Subject"] in valid_subjects)
 
             def _collate_fn(batch):
                 return mmmlu_collate(batch, tok)
 
             loader = DataLoader(
-                ds_subj,
+                ds_category,
                 batch_size=batch_size,
                 shuffle=False,
                 collate_fn=_collate_fn,
                 num_workers=0,
             )
-            result[(language, subj)] = loader
+            result[(language, category)] = loader
 
     return result
