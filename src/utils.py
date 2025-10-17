@@ -278,7 +278,7 @@ def mmlu_pro_x_collate(batch_of_examples: List[Dict[str, Any]], tok: PreTrainedT
 
 def mmlu_pro_x_loader(
     tok: PreTrainedTokenizer,
-    languages: List[str] = ["de", "es", "fr", "hi", "ja", "ko", "pt", "zh"], # fmt: skip,
+    languages: List[str] = ["de", "es", "fr", "hi", "ja", "ko", "pt", "zh", "en"], # fmt: skip,
     max_examples: int | None = None, 
     batch_size: int = 8
 ) -> Dict[Tuple[str, str], DataLoader]:

@@ -52,7 +52,7 @@ def get_router_statistics(
     return tracker
 
 
-def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str):
+def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str, overwrite: bool = False):
     # 1) load config & model with router‐logits enabled
     accelerator = Accelerator(mixed_precision="bf16")
     device = accelerator.device
@@ -100,10 +100,19 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
             print(f"Not my part {accelerator.process_index}")
             continue
 
+        # Check if output folder already exists
+        output_folder = os.path.join(
+            out_dir,
+            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{language}/{subject}",
+        )
+        if os.path.exists(output_folder) and not overwrite:
+            print(f"Skipping {subject} ({language}) - output folder already exists: {output_folder}")
+            continue
+
         # Don't use accelerator.prepare on loader - we're manually splitting by subject
         # We move them manually instead
         # loader = accelerator.prepare(loader)
-    
+
         start_time = time.time()
 
         # 2) gather routing statistics
@@ -153,6 +162,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_name", type=str, required=True, help="Huggingface data path or path"
     )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing output folders",
+    )
 
     args = parser.parse_args()
-    main(args.model_name, args.data_name, args.max_examples, args.out_data_dir)
+    main(args.model_name, args.data_name, args.max_examples, args.out_data_dir, args.overwrite)
