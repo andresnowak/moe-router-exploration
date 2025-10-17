@@ -4,7 +4,7 @@ from collections import Counter
 from abc import ABC, abstractmethod
 
 import torch
-from transformers import PreTrainedTokenizerBase
+from transformers import PreTrainedTokenizerBase, PretrainedConfig
 from transformers.modeling_utils import PreTrainedModel
 
 
@@ -46,11 +46,11 @@ class MoELogger(ABC):
 
 
 class DeepSeekMoELogger(MoELogger):
-    def __init__(self, model: PreTrainedModel, tokenizer):
+    def __init__(self, model: PreTrainedModel, config: PretrainedConfig, tokenizer: PreTrainedTokenizerBase):
         super().__init__(model, tokenizer)
 
         # shapes for your stats tensor:
-        cfg = model.config
+        cfg = config
 
         self.num_layers = cfg.num_hidden_layers
         self.top_k_experts = cfg.num_experts_per_tok
@@ -58,8 +58,9 @@ class DeepSeekMoELogger(MoELogger):
 
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs):
-            idx = outputs[0].detach()
-            self.routing_logs[path] = {"indices": idx, "layer_num": layer}
+            _, topk_idx = torch.topk(outputs[1], k=self.top_k_experts, dim=-1)
+            # idx = outputs[0].detach() # They use topk without sorting for speed
+            self.routing_logs[path] = {"indices": topk_idx, "layer_num": layer}
 
         return hook
 
@@ -76,11 +77,11 @@ class DeepSeekMoELogger(MoELogger):
 
 
 class GPTOssMoELogger(MoELogger):
-    def __init__(self, model: PreTrainedModel, tokenizer):
+    def __init__(self, model: PreTrainedModel, config: PretrainedConfig, tokenizer: PreTrainedTokenizerBase):
         super().__init__(model, tokenizer)
 
         # shapes for your stats tensor:
-        cfg = model.config
+        cfg = config
 
         self.num_layers = cfg.num_hidden_layers
         self.top_k_experts = cfg.num_experts_per_tok
@@ -109,13 +110,14 @@ class RoutingStatisticsTracker:
     def __init__(
         self,
         model: PreTrainedModel,
+        config: PretrainedConfig,
         tokenizer: PreTrainedTokenizerBase,
         num_layers: int,
         num_experts: int,
     ):
         self.model = model
         self.tok = tokenizer
-        cfg = model.config
+        cfg = config
         self.vocab_size = cfg.vocab_size
         self.sequence_length = cfg.max_position_embeddings
         self.num_layers = num_layers

@@ -8,6 +8,7 @@ from transformers import (
     AutoTokenizer,
     PreTrainedModel,
     PreTrainedTokenizer,
+    PretrainedConfig
 )
 from torch.utils.data import DataLoader
 from accelerate import Accelerator
@@ -18,9 +19,11 @@ from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader
 
 def get_router_statistics(
     model: PreTrainedModel,
+    config: PretrainedConfig,
     tok: PreTrainedTokenizer,
     routing_logger: MoELogger,
     loader: DataLoader,
+    accelerator: Accelerator,
 ) -> RoutingStatisticsTracker:
     """
     Log routing stats for a dataset.
@@ -34,12 +37,11 @@ def get_router_statistics(
     Returns:
         A RoutingStatisticsTracker with counts filled in.
     """
-    tracker = RoutingStatisticsTracker(model, tok, routing_logger.num_layers, routing_logger.num_experts)
+    tracker = RoutingStatisticsTracker(model, config, tok, routing_logger.num_layers, routing_logger.num_experts)
 
     for batch in loader:
-        batch = {
-            k: v.to(model.device) for k, v in batch.items()
-        }  # Move tensors to device
+        # Move batch to device since we're not using accelerator.prepare(loader)
+        batch = {k: v.to(accelerator.device) for k, v in batch.items()}
 
         with torch.no_grad():
             _ = model(**batch, use_cache=False, return_dict=True)
@@ -51,23 +53,25 @@ def get_router_statistics(
 
 
 def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str):
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
     # 1) load config & model with router‐logits enabled
+    accelerator = Accelerator(mixed_precision="bf16")
+
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         torch_dtype="auto",
-        device_map="auto",
         trust_remote_code=True,
     ).eval()
 
     tok = AutoTokenizer.from_pretrained(model_name)
 
+    model_config = model.config
+    model = accelerator.prepare(model)
+
     routing_logger = None
     if "deepseek-ai/deepseek-moe" in model_name:
-        routing_logger = DeepSeekMoELogger(model, tok)
-    elif "openai/gpt-oss-20b":
-        routing_logger = GPTOssMoELogger(model, tok)
+        routing_logger = DeepSeekMoELogger(model, model_config, tok)
+    elif "openai/gpt-oss-20b" in model_name:
+        routing_logger = GPTOssMoELogger(model, model_config, tok)
     else:
         raise Exception(f"{model_name} is not a valid model name")
 
@@ -80,9 +84,6 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmmlu_loader(tok=tok, max_examples=max_examples, batch_size=16)
     else:
         raise Exception(f"{data_name} is not a valid data name")
-    
-    accelerator = Accelerator()
-    model = accelerator.prepare(model)
 
     if accelerator.is_main_process:
         print(f"Starting on {accelerator.num_processes} processes...")
@@ -90,14 +91,17 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
     items = list(loader_dict.items())
     for i, ((subject, language), loader) in enumerate(items):
         if i % accelerator.num_processes != accelerator.process_index:
+            print(f"Not my part {accelerator.process_index}")
             continue
 
-        loader = accelerator.prepare(loader)
+        # Don't use accelerator.prepare on loader - we're manually splitting by subject
+        # We move them manually instead
+        # loader = accelerator.prepare(loader)
     
         start_time = time.time()
 
         # 2) gather routing statistics
-        tracker = get_router_statistics(model, tok, routing_logger, loader)
+        tracker = get_router_statistics(model, model_config, tok, routing_logger, loader, accelerator)
 
         # 3) save results
         counter_path = os.path.join(
