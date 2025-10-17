@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from accelerate import Accelerator
 
 from src.router_logger import DeepSeekMoELogger, RoutingStatisticsTracker, GPTOssMoELogger, MoELogger
-from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader
+from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader
 
 
 def get_router_statistics(
@@ -55,10 +55,12 @@ def get_router_statistics(
 def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str):
     # 1) load config & model with router‐logits enabled
     accelerator = Accelerator(mixed_precision="bf16")
+    device = accelerator.device
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         torch_dtype="auto",
+        device_map=device,
         trust_remote_code=True,
     ).eval()
 
@@ -82,6 +84,10 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmlu_pro_loader(tok, max_examples, 16)
     elif "openai/MMMLU" in data_name:
         loader_dict = mmmlu_loader(tok=tok, max_examples=max_examples, batch_size=16)
+    elif "li-lab/MMLU-ProX" in data_name:
+        loader_dict = mmlu_pro_x_loader(
+            tok=tok, max_examples=max_examples, batch_size=16
+        )
     else:
         raise Exception(f"{data_name} is not a valid data name")
 

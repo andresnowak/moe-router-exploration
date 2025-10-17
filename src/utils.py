@@ -244,3 +244,93 @@ def mmmlu_loader(
             result[(language, category)] = loader
 
     return result
+
+
+def mmlu_pro_x_collate(batch_of_examples: List[Dict[str, Any]], tok: PreTrainedTokenizer):
+    """
+    `batch_of_examples`: list of dicts from the dataset
+    returns: dict with keys ['input_ids', 'attention_mask'] of shape (B, T)
+    """
+
+    prompts = [
+        ex["question"] + "\nChoices: " + " / ".join([ex[f"option_{i}"] for i in range(0, 10) if ex.get(f"option_{i}") is not None])
+        for ex in batch_of_examples
+    ]
+
+    # tokenise one-by-one first (fast enough)
+    enc = tok(
+        prompts, truncation=True, max_length=1024, padding=False
+    )  # no padding here – we do it tensor-wise below
+
+    # convert to tensors and pad
+    input_ids = [torch.tensor(x) for x in enc["input_ids"]]
+    attention_mask = [torch.tensor(x) for x in enc["attention_mask"]]
+
+    return {
+        "input_ids": pad_sequence(
+            input_ids, batch_first=True, padding_value=tok.pad_token_id
+        ),
+        "attention_mask": pad_sequence(
+            attention_mask, batch_first=True, padding_value=0
+        ),
+    }
+
+
+def mmlu_pro_x_loader(
+    tok: PreTrainedTokenizer,
+    languages: List[str] = ["de", "es", "fr", "hi", "ja", "ko", "pt", "zh"], # fmt: skip,
+    max_examples: int | None = None, 
+    batch_size: int = 8
+) -> Dict[Tuple[str, str], DataLoader]:
+    """
+    Load the MMLU-Pro test set and return one DataLoader per subject.
+
+    Returns:
+        A dict mapping (language, subject) -> DataLoader over that subset.
+    """
+    result: Dict[Tuple[str, str], DataLoader] = {}
+
+    # fmt: off
+    categories = ["biology", "business", "chemistry", "computer science", "economics", "engineering", "health", "history", "law", "math", "philosophy", "physics", "psychology",
+    ]
+    # fmt: on
+
+    for language in languages:
+        # 1) Load the per‐language split (hf “openai/MMMLU” uses the language
+        #    as its config name)
+        try:
+            ds = load_dataset("li-lab/MMLU-ProX", language, split="test")
+        except Exception as e:
+            raise ValueError(f"Could not load MMLU test for {language!r}: {e}")
+
+        language = language.upper()
+
+        # 2) Inject the language column (so collate/future metrics can see it)
+        ds = ds.map(lambda ex: {"language": language})
+
+        # 3) Optionally truncate overall
+        if max_examples is not None:
+            ds = ds.select(range(min(len(ds), max_examples)))
+
+        # 4) Find all subjects in this language
+        ln_categories = ds.unique("category")
+        ln_categories = list(set(ln_categories) & set(categories))
+
+        # 5) Build one DataLoader per category
+        for category in ln_categories:
+            # Filter dataset to include all subjects in this category
+            ds_category = ds.filter(lambda ex: ex["category"] == category)
+
+            def _collate_fn(batch):
+                return mmlu_pro_x_collate(batch, tok)
+
+            loader = DataLoader(
+                ds_category,
+                batch_size=batch_size,
+                shuffle=False,
+                collate_fn=_collate_fn,
+                num_workers=0,
+            )
+            result[(language, category)] = loader
+
+    return result
