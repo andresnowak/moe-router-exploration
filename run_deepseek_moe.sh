@@ -40,6 +40,11 @@ accelerate launch --num_processes=4 --mixed_precision=bf16 main.py \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
     --data_name "openai/MMMLU" \
 
+accelerate launch --num_processes=4 --mixed_precision=bf16 main.py \
+    --model_name "deepseek-ai/deepseek-moe-16b-base" \
+    --out_data_dir "$SCRATCH/moe-router-exploration-data" \
+    --data_name "li-lab/MMLU-ProX" \
+
 END_TIME=\$(date +%s)
 ELAPSED=\$((END_TIME - START_TIME))
 echo \"\"
