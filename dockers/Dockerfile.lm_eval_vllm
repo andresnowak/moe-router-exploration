@@ -1,0 +1,24 @@
+FROM nvcr.io/nvidia/pytorch:25.06-py3 AS base
+ENV SHELL=/bin/bash
+WORKDIR /home/vllm
+ENV MAX_JOBS=32
+ENV NVCC_THREADS=2
+ENV PIP_NO_CACHE_DIR=1
+
+# Create a constraints file to ensure numpy stays <2
+RUN echo "numpy<2" > /tmp/constraints.txt
+ENV PIP_CONSTRAINT=/tmp/constraints.txt
+
+# Use a specific, stable Git tag for vLLM
+ENV VLLM_TAG=v0.10.2
+ENV CMAKE_CUDA_ARCHITECTURES="90"
+
+RUN echo "Cloning vLLM with tag: ${VLLM_TAG}" && \
+    git clone --depth 1 --branch ${VLLM_TAG} https://github.com/vllm-project/vllm.git && \
+    cd vllm && \
+    python use_existing_torch.py && \
+    pip install -r requirements/build.txt && \
+    pip install --no-build-isolation -v -e .
+
+WORKDIR /home/
+RUN pip install "lm_eval[vllm]"

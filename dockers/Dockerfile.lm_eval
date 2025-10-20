@@ -1,0 +1,20 @@
+FROM nvcr.io/nvidia/pytorch:25.06-py3 AS base
+
+ENV SHELL=/bin/bash
+ENV PIP_NO_CACHE_DIR=1
+
+WORKDIR /home/
+
+# Create a constraints file to ensure numpy stays <2 for PyTorch compatibility
+RUN echo "numpy<2" > /tmp/constraints.txt
+ENV PIP_CONSTRAINT=/tmp/constraints.txt
+
+# Install lm_eval with the HuggingFace backend (default)
+RUN pip install lm-eval
+
+# Optional: Install additional backends if needed
+# RUN pip install lm-eval[anthropic]  # For Claude models
+# RUN pip install lm-eval[openai]     # For OpenAI API
+# RUN pip install lm-eval[all]        # For all backends
+
+WORKDIR /home/
