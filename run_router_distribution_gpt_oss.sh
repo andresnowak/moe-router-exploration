@@ -1,11 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=deepseek_moe_router_statistics
-#SBATCH --time=05:00:00
+#SBATCH --job-name=gpt_oss_router_distribution_statistics
+#SBATCH --time=03:00:00
 #SBATCH --nodes=1                # total number of nodes
 #SBATCH --ntasks-per-node=1      # total number of tasks per node
-#SBATCH --gpus-per-task=4
+#SBATCH --gpus-per-task=4        # Use 4 GPUs for multi-GPU acceleration
 #SBATCH --output=logs/slurm-%x-%j.log  # if #SBATCH --error=... is not specified,
                                  # this will also contain stderr (error messages)
+#SBATCH --error=logs/slurm-%x-%j.err
 
 # Initialization.
 export UV_LINK_MODE=copy
@@ -30,20 +31,16 @@ fi
 
 source set_threads.sh
 
-accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
-    --model_name "deepseek-ai/deepseek-moe-16b-base" \
-    --out_data_dir "$SCRATCH/moe-router-exploration-data" \
+
+accelerate launch --num_processes=4 --mixed_precision=bf16 main_router_prob_distribution.py \
+    --model_name "openai/gpt-oss-20b" \
+    --out_data_dir "$SCRATCH/moe-router-exploration-data/router_prob_distribution" \
     --data_name "cais/mmlu" \
 
-accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
-    --model_name "deepseek-ai/deepseek-moe-16b-base" \
-    --out_data_dir "$SCRATCH/moe-router-exploration-data" \
-    --data_name "openai/MMMLU" \
-
-accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
-    --model_name "deepseek-ai/deepseek-moe-16b-base" \
-    --out_data_dir "$SCRATCH/moe-router-exploration-data" \
-    --data_name "li-lab/MMLU-ProX" \
+accelerate launch --num_processes=4 --mixed_precision=bf16 main_router_prob_distribution.py \
+    --model_name "openai/gpt-oss-20b" \
+    --out_data_dir "$SCRATCH/moe-router-exploration-data/router_prob_distribution" \
+    --data_name "TIGER-Lab/MMLU-Pro" \
 
 END_TIME=\$(date +%s)
 ELAPSED=\$((END_TIME - START_TIME))

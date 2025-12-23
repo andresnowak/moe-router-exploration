@@ -58,9 +58,13 @@ class DeepSeekMoELogger(MoELogger):
 
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs):
-            _, topk_idx = torch.topk(outputs[1], k=self.top_k_experts, dim=-1)
+            # outputs: (topk_idx, topk_probs, aux_loss)
+            # Deepseek moe does softmax before topk selection but then normalizes again after topk
+            topk_idx = outputs[0]
+            topk_probs = outputs[1]
+
             # idx = outputs[0].detach() # They use topk without sorting for speed
-            self.routing_logs[path] = {"indices": topk_idx, "layer_num": layer}
+            self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
         return hook
 
@@ -88,9 +92,12 @@ class GPTOssMoELogger(MoELogger):
         self.num_experts = cfg.num_local_experts
 
     def _make_hook(self, path: str, layer: int):
-        def hook(module, inputs, outputs):
-            _, topk_idx = torch.topk(outputs[1], k=self.top_k_experts, dim=-1)
-            self.routing_logs[path] = {"indices": topk_idx.detach(), "layer_num": layer}
+        def hook(module, inputs, outputs: List[torch.Tensor]):
+            # outputs: (output, expert_weights) from https://huggingface.co/kernels-community/megablocks
+            expert_weights = outputs[1]
+            topk_logits, topk_idx = torch.topk(expert_weights, k=self.top_k_experts, dim=-1)
+            topk_probs = torch.softmax(topk_logits, dim=-1)
+            self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
         return hook
 
@@ -99,6 +106,7 @@ class GPTOssMoELogger(MoELogger):
         # find all MoEGate modules and parse layer number from name
         for name, module in self.model.named_modules():
             if module.__class__.__name__ == "GptOssMLP":
+                # We can't use "GptOssTopKRouter", becuase mlp uses a decorator to use the megablocks kernel instead
                 m = re.search(r"layers\.(\d+)", name)
                 layer = int(m.group(1)) if m else -1
                 h = module.register_forward_hook(self._make_hook(name, layer))
@@ -243,30 +251,78 @@ class RoutingStatisticsTracker:
         torch.save(sparse, path)
 
 
-# def update_routing_statistics(
-#     batch,
-#     routing_logs: Dict[str, Dict[str, torch.Tensor | int]],
-#     expert_routing: torch.Tensor,
-# ):
-#     input_ids = batch[
-#         "input_ids"
-#     ]  # (B, S); assume no padding for simplicity, or mask below
-#     # _ = model(**batch, use_cache=False, return_dict=True)
+class RoutingDistributionTracker:
+    def __init__(
+        self,
+        model: PreTrainedModel,
+        config: PretrainedConfig,
+        tokenizer: PreTrainedTokenizerBase,
+        num_layers: int,
+        num_experts: int,
+    ):
+        self.model = model
+        self.tok = tokenizer
+        cfg = config
+        self.vocab_size = cfg.vocab_size
+        self.sequence_length = cfg.max_position_embeddings
+        self.num_layers = num_layers
+        self.num_experts = num_experts
+        self.top_k = cfg.num_experts_per_tok
 
-#     B, S = input_ids.shape
+        # Dims for the result will be [L, E, [0, total_tokens]] (so for each token we will know the probabilities of being routed to each expert)
+        # for now we don't care about which token it is (as this would explode the memory usage)
+        # Store as lists of tensors, concatenate at the end for better performance
+        self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
 
-#     for _, info in routing_logs.items():
-#         indices = info["indices"].detach().cpu()  # (B, S, K)
-#         layer_num = info["layer_num"]
+    def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
+        """
+        Update internal counts from one model forward pass.
 
-#         # 1) expand your input_ids to match (B, S, K)
-#         toks = batch["input_ids"].unsqueeze(-1).cpu()  # (B, S, 1)
-#         toks = (
-#             toks.expand(-1, -1, indices.size(-1)) - 1
-#         )  # (B, S, K) # so to go from 0 to N
+        Args:
+            batch: Dict with "input_ids" [B, S]
+            routing_logs: Dict[layer_num] -> {"indices": [B, S, K], "probs": [B, S, K]}
+        """
+        for _, info in routing_logs.items():
+            indices = info["indices"].cpu().view(-1)  # (B*S*K)
+            layer_num = info["layer_num"]
+            probs = info["probs"].cpu().view(-1)  # (B*S*K)
 
-#         # 2) build a same-shape tensor of the layer index
-#         lays = torch.full_like(indices, fill_value=layer_num)
+            # Vectorized: gather probs for each expert across all ranks
+            for expert_idx in range(self.num_experts):
+                # Find all positions where this expert appears (across all ranks)
+                mask = (indices == expert_idx)  # [B*S*K]
+                if mask.any():
+                    # Get the probabilities where this expert was selected
+                    expert_mask = indices == expert_idx  # [B*S*K]
+                    expert_probs = probs[expert_mask]  # [num_occurrences]
+                    self.values[layer_num][expert_idx].append(expert_probs)
 
-#         # 3) now in one shot bump every (token, layer, expert)
-#         expert_routing[toks, lays, indices] += 1.0
+    def save_distributions(self, out_dir: str):
+        """
+        Save the collected distributions to disk.
+        Saves a single file with all layer/expert probability distributions.
+        """
+        import os
+        os.makedirs(out_dir, exist_ok=True)
+
+        # Finalize if needed (convert lists to tensors)
+        for layer in range(self.num_layers):
+            for expert in range(self.num_experts):
+                if self.values[layer][expert]:
+                    self.values[layer][expert] = torch.cat(self.values[layer][expert], dim=0) # concatenate all the batches
+                else:
+                    self.values[layer][expert] = torch.tensor([])
+
+        # Save as a nested structure
+        save_dict = {
+            'num_layers': self.num_layers,
+            'num_experts': self.num_experts,
+            'top_k': self.top_k,
+            'distributions': self.values  # [L][E][tensor of probs (length for each expert is max total amount of tokens in dataset)]
+        }
+
+        torch.save(save_dict, os.path.join(out_dir, 'router_distributions.pt'))
+
+    def reset(self):
+        """Clear all accumulated distributions."""
+        self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]

@@ -31,17 +31,17 @@ fi
 source set_threads.sh
 
 
-accelerate launch --num_processes=4 --mixed_precision=bf16 main.py \
+accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
     --data_name "cais/mmlu" \
 
-accelerate launch --num_processes=4 --mixed_precision=bf16 main.py \
+accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
     --data_name "openai/MMMLU" \
 
-accelerate launch --num_processes=4 --mixed_precision=bf16 main.py \
+accelerate launch --num_processes=4 --mixed_precision=bf16 main_multilingual.py \
     --model_name "openai/gpt-oss-20b" \
     --out_data_dir "$SCRATCH/moe-router-exploration-data" \
     --data_name "li-lab/MMLU-ProX" \
