@@ -2,7 +2,7 @@ import os
 import torch
 from typing import Dict, List
 
-def create_dataset_routing_statistics(root_path: str) -> List[List[List[torch.Tensor]]]:
+def create_dataset_routing_statistics(root_path: str) -> List[Dict[str, List[torch.Tensor] | int]]:
     list_tensors = []
 
     for dirpath, _, filenames in os.walk(root_path):
