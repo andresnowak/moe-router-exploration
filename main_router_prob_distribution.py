@@ -13,7 +13,7 @@ from transformers import (
 from torch.utils.data import DataLoader
 from accelerate import Accelerator
 
-from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger
+from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger, TrinityMoELogger, OLMoELogger
 from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader
 
 
@@ -74,6 +74,10 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         routing_logger = DeepSeekMoELogger(model, model_config, tok)
     elif "openai/gpt-oss-20b" in model_name:
         routing_logger = GPTOssMoELogger(model, model_config, tok)
+    elif "arcee-ai/Trinity-Nano" in model_name or "arcee-ai/Trinity-Mini" in model_name:
+        routing_logger = TrinityMoELogger(model, model_config, tok)
+    elif "allenai/OLMoE" in model_name:
+        routing_logger = OLMoELogger(model, model_config, tok)
     else:
         raise Exception(f"{model_name} is not a valid model name")
 

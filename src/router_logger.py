@@ -127,7 +127,7 @@ class TrinityMoELogger(MoELogger):
 
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs: List[torch.Tensor]):
-            # outputs: (non_normalized_topk_scores, topk_idx) from https://huggingface.co/kernels-community/megablocks
+            # outputs: (non_normalized_topk_scores, topk_idx)
             topk_idx = outputs[1]
             topk_non_normalized_probs = outputs[0] # they do softmax and then topk (but they only normalize after topk if they are using sigmoid instead of softmax)
             topk_probs = topk_non_normalized_probs / (topk_non_normalized_probs.sum(dim=-1, keepdim=True) + 1e-20)
@@ -141,6 +141,42 @@ class TrinityMoELogger(MoELogger):
         # find all MoEGate modules and parse layer number from name
         for name, module in self.model.named_modules():
             if module.__class__.__name__ == "AfmoeTokenChoiceRouter":
+                m = re.search(r"layers\.(\d+)", name)
+                layer = int(m.group(1)) if m else -1
+                h = module.register_forward_hook(self._make_hook(name, layer))
+                handles.append(h)
+        return handles
+
+
+class OLMoELogger(MoELogger):
+    def __init__(self, model: PreTrainedModel, config: PretrainedConfig, tokenizer: PreTrainedTokenizerBase):
+        super().__init__(model, tokenizer)
+
+        # shapes for your stats tensor:
+        cfg = config
+
+        self.num_layers = cfg.num_hidden_layers
+        self.top_k_experts = cfg.num_experts_per_tok
+        self.num_experts = cfg.num_experts
+
+    def _make_hook(self, path: str, layer: int):
+        def hook(module, inputs, outputs: List[torch.Tensor]):
+            # outputs: (hidden_states, router_logits)
+            router_logits = outputs[1]
+            router_weights = torch.softmax(router_logits, dim=-1)
+            topk_probs, topk_idx = torch.topk(router_weights, k=self.top_k_experts, dim=-1)
+            topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20) # renormalize after topk
+            
+            self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
+
+        return hook
+
+    def _register_hooks(self) -> List[torch.utils.hooks.RemovableHandle]:
+        handles = []
+        # find all MoEGate modules and parse layer number from name
+        for name, module in self.model.named_modules():
+            # The structure of the model changes in newer version of transformers (this is for 4.57.*)
+            if module.__class__.__name__ == "OlmoeSparseMoeBlock":
                 m = re.search(r"layers\.(\d+)", name)
                 layer = int(m.group(1)) if m else -1
                 h = module.register_forward_hook(self._make_hook(name, layer))
