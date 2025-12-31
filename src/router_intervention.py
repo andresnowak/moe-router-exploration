@@ -169,6 +169,14 @@ class DeepSeekMoERouterIntervention(RouterIntervention):
                 denominator = topk_weight.sum(dim=-1, keepdim=True) + 1e-20
                 topk_weight = topk_weight / denominator
 
+            if prob_threshold is not None:
+                # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold (we do this based on the prob value that will be used in the weighted sum of experts (even if its not renormalized to 1 in the top-k))
+                topk_weight = torch.where(
+                    topk_weight < prob_threshold,
+                    torch.zeros_like(topk_weight),
+                    topk_weight
+                )
+
             ### expert-level computation auxiliary loss
             if module.training and module.alpha > 0.0:
                 scores_for_aux = scores
@@ -203,19 +211,50 @@ class TrinityRouterIntervention(RouterIntervention):
                 m = re.search(r"layers\.(\d+)", name)
                 if m:
                     layer = int(m.group(1))
-                    if layer in self.experts_to_zero:
+                    if self.prob_threshold is not None:
                         self._patch_router(module, layer)
 
-    def _patch_router(self, router_module, layer: int):
+    def _patch_router(self, module, layer: int):
         """Patch the AfmoeTokenChoiceRouter forward method."""
-        original_forward = router_module.forward
-        experts_to_mask = self.experts_to_zero[layer]
+        original_forward = module.forward
+        prob_threshold = self.prob_threshold
 
-        def patched_forward(hidden_states):
-            pass
+        def patched_forward(hidden_states, expert_bias: torch.Tensor | None):
+            _, _, hidden_dim = hidden_states.shape
+            hidden_states = hidden_states.view(-1, hidden_dim)
 
-        router_module.forward = patched_forward
-        self.original_forwards[id(router_module)] = original_forward
+            scores = module.gate(hidden_states)
+
+            # Apply scoring function in float32 for stability
+            if module.score_func == "sigmoid":
+                scores = torch.sigmoid(scores.to(torch.float32))
+            else:
+                scores = F.softmax(scores.to(torch.float32), dim=-1)
+
+            if expert_bias is not None:
+                _, selected_experts = torch.topk(scores + expert_bias, k=module.top_k, dim=1)
+                top_scores = scores.gather(dim=1, index=selected_experts)
+            else:
+                top_scores, selected_experts = torch.topk(scores, k=module.top_k, dim=1)
+
+            # Normalize weights if using sigmoid
+            if module.score_func == "sigmoid" and module.route_norm:
+                denominator = top_scores.sum(dim=-1, keepdim=True) + 1e-20
+                top_scores = top_scores / denominator
+
+            if prob_threshold is not None:
+                # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold (we do this based on the prob value that will be used in the weighted sum of experts (even if its not renormalized to 1 in the top-k))
+                top_scores = torch.where(
+                    top_scores < prob_threshold,
+                    torch.zeros_like(top_scores),
+                    top_scores
+                )
+
+            top_scores = top_scores * module.route_scale
+            return top_scores, selected_experts
+
+        module.forward = patched_forward
+        self.original_forwards[id(module)] = original_forward
 
 
 class GPTOssRouterIntervention(RouterIntervention):
