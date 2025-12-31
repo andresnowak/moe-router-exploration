@@ -9,6 +9,16 @@ from transformers import PreTrainedModel
 from transformers.integrations.mxfp4 import routing_torch_dist
 
 # NOTE: here we don't need to do a renormalization after applying the threshold (as we want to use the same behavior as the original model, just seeing if in reality it is using the value of the experts with low score in the weighted sum of experts or not)
+ 
+# Monkey-patch DynamicCache to fix compatibility issue with the cache in Deepseek-MoE
+from transformers.cache_utils import DynamicCache
+if not hasattr(DynamicCache, 'get_usable_length'):
+    def get_usable_length(self, *args, **kwargs):
+        if len(args) > 1:
+            return self.get_seq_length(args[1]) # assuming args[1] is layer_idx
+        else:
+            return self.get_seq_length()
+    setattr(DynamicCache, 'get_usable_length', get_usable_length)
 
 # Global variable for triton kernels hub (initialized on first use)
 triton_kernels_hub = None
@@ -141,7 +151,44 @@ class DeepSeekMoERouterIntervention(RouterIntervention):
         prob_threshold = self.prob_threshold
 
         def patched_forward(hidden_states):
-            pass
+            # https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/modeling_deepseek.py (MoEGate.forward)
+            bsz, seq_len, h = hidden_states.shape        
+            ### compute gating score
+            hidden_states = hidden_states.view(-1, h)
+            logits = F.linear(hidden_states, module.weight, None)
+            if module.scoring_func == 'softmax':
+                scores = logits.softmax(dim=-1)
+            else:
+                raise NotImplementedError(f'insupportable scoring function for MoE gating: {module.scoring_func}')
+            
+            ### select top-k experts
+            topk_weight, topk_idx = torch.topk(scores, k=module.top_k, dim=-1, sorted=False)
+            
+            ### norm gate to sum 1
+            if module.top_k > 1 and module.norm_topk_prob:
+                denominator = topk_weight.sum(dim=-1, keepdim=True) + 1e-20
+                topk_weight = topk_weight / denominator
+
+            ### expert-level computation auxiliary loss
+            if module.training and module.alpha > 0.0:
+                scores_for_aux = scores
+                aux_topk = module.top_k
+                # always compute aux loss based on the naive greedy topk method
+                topk_idx_for_aux_loss = topk_idx.view(bsz, -1)
+                if module.seq_aux:
+                    scores_for_seq_aux = scores_for_aux.view(bsz, seq_len, -1)
+                    ce = torch.zeros(bsz, module.n_routed_experts, device=hidden_states.device)
+                    ce.scatter_add_(1, topk_idx_for_aux_loss, torch.ones(bsz, seq_len * aux_topk, device=hidden_states.device)).div_(seq_len * aux_topk / module.n_routed_experts)
+                    aux_loss = (ce * scores_for_seq_aux.mean(dim = 1)).sum(dim = 1).mean() * module.alpha
+                else:
+                    mask_ce = F.one_hot(topk_idx_for_aux_loss.view(-1), num_classes=module.n_routed_experts)
+                    ce = mask_ce.float().mean(0)
+                    Pi = scores_for_aux.mean(0)
+                    fi = ce * module.n_routed_experts
+                    aux_loss = (Pi * fi).sum() * module.alpha
+            else:
+                aux_loss = None
+            return topk_idx, topk_weight, aux_loss
 
         module.forward = patched_forward
         self.original_forwards[id(module)] = original_forward
