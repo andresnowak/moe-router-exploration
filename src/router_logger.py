@@ -95,6 +95,7 @@ class GPTOssMoELogger(MoELogger):
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs: List[torch.Tensor]):
             # outputs: (expert_result, router_logits [batch*seq_len, num_experts]) (https://github.com/huggingface/transformers/blob/cd74917ffc3e8f84e4a886052c5ab32b7ac623cc/src/transformers/integrations/mxfp4.py#L131)
+
             # they do topk and then softmax https://github.com/huggingface/transformers/blob/v4.56.2/src/transformers/models/gpt_oss/modeling_gpt_oss.py
             router_logits = outputs[1]
             topk_logits, topk_idx = torch.topk(router_logits, k=self.top_k_experts, dim=-1)

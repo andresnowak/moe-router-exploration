@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from accelerate import Accelerator
 
 from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger, TrinityMoELogger, OLMoELogger
+from src.router_intervention import create_router_intervention
 from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader
 
 
@@ -73,6 +74,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
     if "deepseek-ai/deepseek-moe" in model_name:
         routing_logger = DeepSeekMoELogger(model, model_config, tok)
     elif "openai/gpt-oss-20b" in model_name:
+        create_router_intervention(model, "gptoss", prob_threshold=0)
         routing_logger = GPTOssMoELogger(model, model_config, tok)
     elif "arcee-ai/Trinity-Nano" in model_name or "arcee-ai/Trinity-Mini" in model_name:
         routing_logger = TrinityMoELogger(model, model_config, tok)

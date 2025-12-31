@@ -3,8 +3,15 @@ from abc import ABC, abstractmethod
 import re
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from transformers import PreTrainedModel
+from transformers.integrations.mxfp4 import routing_torch_dist
+
+# NOTE: here we don't need to do a renormalization after applying the threshold (as we want to use the same behavior as the original model, just seeing if in reality it is using the value of the experts with low score in the weighted sum of experts or not)
+
+# Global variable for triton kernels hub (initialized on first use)
+triton_kernels_hub = None
 
 
 class RouterIntervention(ABC):
@@ -77,7 +84,7 @@ class OLMoERouterIntervention(RouterIntervention):
                 routing_weights /= routing_weights.sum(dim=-1, keepdim=True)
 
             if prob_threshold is not None:
-                # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold
+                # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold (we do this based on the prob value that will be used in the weighted sum of experts (even if its not renormalized to 1 in the top-k))
                 routing_weights = torch.where(
                     routing_weights < prob_threshold,
                     torch.zeros_like(routing_weights),
@@ -116,7 +123,7 @@ class OLMoERouterIntervention(RouterIntervention):
         self.original_forwards[id(module)] = original_forward
 
 
-class DeepSeekRouterIntervention(RouterIntervention):
+class DeepSeekMoERouterIntervention(RouterIntervention):
     """Router intervention for DeepSeek models."""
 
     def _apply_interventions(self):
@@ -134,52 +141,7 @@ class DeepSeekRouterIntervention(RouterIntervention):
         prob_threshold = self.prob_threshold
 
         def patched_forward(hidden_states):
-            bsz, seq_len, h = hidden_states.shape        
-            ### compute gating score
-            hidden_states = hidden_states.view(-1, h)
-            logits = F.linear(hidden_states, module.weight, None)
-            if module.scoring_func == 'softmax':
-                scores = logits.softmax(dim=-1)
-            else:
-                raise NotImplementedError(f'insupportable scoring function for MoE gating: {module.scoring_func}')
-            
-            ### select top-k experts
-            topk_weight, topk_idx = torch.topk(scores, k=module.top_k, dim=-1, sorted=False)
-            
-            ### norm gate to sum 1
-            if module.top_k > 1 and module.norm_topk_prob:
-                denominator = topk_weight.sum(dim=-1, keepdim=True) + 1e-20
-                topk_weight = topk_weight / denominator
-
-            ### expert-level computation auxiliary loss
-            if module.training and module.alpha > 0.0:
-                scores_for_aux = scores
-                aux_topk = module.top_k
-                # always compute aux loss based on the naive greedy topk method
-                topk_idx_for_aux_loss = topk_idx.view(bsz, -1)
-                if module.seq_aux:
-                    scores_for_seq_aux = scores_for_aux.view(bsz, seq_len, -1)
-                    ce = torch.zeros(bsz, module.n_routed_experts, device=hidden_states.device)
-                    ce.scatter_add_(1, topk_idx_for_aux_loss, torch.ones(bsz, seq_len * aux_topk, device=hidden_states.device)).div_(seq_len * aux_topk / module.n_routed_experts)
-                    aux_loss = (ce * scores_for_seq_aux.mean(dim = 1)).sum(dim = 1).mean() * module.alpha
-                else:
-                    mask_ce = F.one_hot(topk_idx_for_aux_loss.view(-1), num_classes=module.n_routed_experts)
-                    ce = mask_ce.float().mean(0)
-                    Pi = scores_for_aux.mean(0)
-                    fi = ce * module.n_routed_experts
-                    aux_loss = (Pi * fi).sum() * module.alpha
-            else:
-                aux_loss = None
-
-            if prob_threshold is not None:
-                # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold
-                topk_weight = torch.where(
-                    topk_weight < prob_threshold,
-                    torch.zeros_like(topk_weight),
-                    topk_weight
-                )
-
-            return topk_idx, topk_weight, aux_loss
+            pass
 
         module.forward = patched_forward
         self.original_forwards[id(module)] = original_forward
@@ -218,16 +180,63 @@ class GPTOssRouterIntervention(RouterIntervention):
                 m = re.search(r"layers\.(\d+)", name)
                 if m:
                     layer = int(m.group(1))
-                    if layer in self.experts_to_zero:
+                    if self.prob_threshold is not None:
                         self._patch_mlp(module, layer)
 
     def _patch_mlp(self, module, layer: int):
-        """Patch the GptOssMLP forward method."""
+        """Patch the GptOssMLP forward method to apply threshold and also be able to bypass the megablocks kernel decorator (because there is not env_variable to do it unless you are in version 5.*) (https://github.com/huggingface/transformers/blob/v4.56.2/src/transformers/models/gpt_oss/modeling_gpt_oss.py)."""
         original_forward = module.forward
         prob_threshold = self.prob_threshold
 
         def patched_forward(hidden_states):
-            pass
+            # NOTE: This is used when we don't have MXFP4 installed
+            # # Call router directly (bypassing the decorator)
+            # router_scores, router_indices = module.router(hidden_states)
+
+            # # Apply probability threshold
+            # if prob_threshold is not None and prob_threshold > 0.0:
+            #     router_scores = torch.where(
+            #         router_scores < prob_threshold,
+            #         torch.zeros_like(router_scores),
+            #         router_scores
+            #     )
+
+            # # Call experts with modified scores (positional args only for Mxfp4GptOssExperts)
+            # routed_out = module.experts(hidden_states, router_indices, router_scores)
+            # return routed_out, router_scores
+
+            # NOTE:This one is used when we have MXFP4 installed for gptoss (this is copied from https://github.com/huggingface/transformers/blob/cd74917ffc3e8f84e4a886052c5ab32b7ac623cc/src/transformers/integrations/mxfp4.py#L272)
+            import torch.distributed as dist
+            global triton_kernels_hub
+
+            # Initialize triton_kernels_hub if not already done
+            if triton_kernels_hub is None:
+                from kernels import get_kernel
+                triton_kernels_hub = get_kernel("kernels-community/triton_kernels")
+
+            if dist.is_available() and dist.is_initialized() and hasattr(module, "_is_hooked"):
+                routing = routing_torch_dist
+            else:
+                routing = triton_kernels_hub.routing.routing
+
+            batch_size = hidden_states.shape[0]
+            hidden_states = hidden_states.reshape(-1, module.router.hidden_dim)
+            router_logits = nn.functional.linear(hidden_states, module.router.weight, module.router.bias) # [batch*seq_len, num_experts]
+
+            with torch.cuda.device(router_logits.device):
+                # routing data is from here https://huggingface.co/kernels-community/triton_kernels/blob/main/torch-ext/triton_kernels/routing.py
+                routing_data, gather_idx, scatter_idx = routing(router_logits, module.router.top_k) # should be in bf16 or float32 dtype I think
+    
+            # Apply probability threshold if needed
+            if prob_threshold is not None and prob_threshold > 0.0:
+                # NOTE: routing_data contains the routing weights, need to modify them. gate_scal (torch.Tensor) has shape [n_tokens_pad * n_expts_act]
+                gate_scores_ref: torch.Tensor = routing_data.gate_scal
+                gate_scores_ref.masked_fill_(gate_scores_ref < prob_threshold, 0)
+
+            routed_out = module.experts(hidden_states, routing_data, gather_idx, scatter_idx)
+            routed_out = routed_out.reshape(batch_size, -1, module.router.hidden_dim)
+
+            return routed_out, router_logits
 
         module.forward = patched_forward
         self.original_forwards[id(module)] = original_forward
@@ -235,7 +244,7 @@ class GPTOssRouterIntervention(RouterIntervention):
 
 MODEL_INTERVENTION_CLASSES = {
     "olmoe": OLMoERouterIntervention,
-    "deepseek-moe": DeepSeekRouterIntervention,
+    "deepseek-moe": DeepSeekMoERouterIntervention,
     "trinity": TrinityRouterIntervention,
     "gptoss": GPTOssRouterIntervention,
 }
