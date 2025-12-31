@@ -94,10 +94,12 @@ class GPTOssMoELogger(MoELogger):
 
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs: List[torch.Tensor]):
-            # outputs: (router_probs [seq_len, num_experts], router_idx [seq_len, top_k])
-            topk_idx = outputs[1]
-            router_sparse_probs = outputs[0]  # they do topk and then softmax https://github.com/huggingface/transformers/blob/v4.56.2/src/transformers/models/gpt_oss/modeling_gpt_oss.py
-            topk_probs = torch.gather(router_sparse_probs, dim=-1, index=topk_idx)
+            # outputs: (expert_result, router_logits [batch*seq_len, num_experts]) (https://github.com/huggingface/transformers/blob/cd74917ffc3e8f84e4a886052c5ab32b7ac623cc/src/transformers/integrations/mxfp4.py#L131)
+            # they do topk and then softmax https://github.com/huggingface/transformers/blob/v4.56.2/src/transformers/models/gpt_oss/modeling_gpt_oss.py
+            router_logits = outputs[1]
+            topk_logits, topk_idx = torch.topk(router_logits, k=self.top_k_experts, dim=-1)
+            topk_probs = torch.softmax(topk_logits, dim=-1)
+
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
         return hook
@@ -106,8 +108,8 @@ class GPTOssMoELogger(MoELogger):
         handles = []
         # find all MoEGate modules and parse layer number from name
         for name, module in self.model.named_modules():
-            if module.__class__.__name__ == "GptOssTopKRouter":
-                # We can't use "GptOssTopKRouter" unless we deactivate hub kernels so we don't use megablocks
+            if module.__class__.__name__ == "GptOssMLP":
+                # We can't use "GptOssTopKRouter" unless we deactivate hub kernels so we don't use megablocks (using USE_HUB_KERNELS=OFF env variable before running the code)
                 m = re.search(r"layers\.(\d+)", name)
                 layer = int(m.group(1)) if m else -1
                 h = module.register_forward_hook(self._make_hook(name, layer))
@@ -178,7 +180,7 @@ class OLMoELogger(MoELogger):
         handles = []
         # find all MoEGate modules and parse layer number from name
         for name, module in self.model.named_modules():
-            # The structure of the model changes in newer version of transformers (this is for 4.57.*)
+            # The structure of the model changes in newer version of transformers (this is for 4.56.*)
             if module.__class__.__name__ == "OlmoeSparseMoeBlock":
                 m = re.search(r"layers\.(\d+)", name)
                 layer = int(m.group(1)) if m else -1
