@@ -59,9 +59,10 @@ class DeepSeekMoELogger(MoELogger):
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs):
             # outputs: (topk_idx, topk_probs, aux_loss)
-            # Deepseek moe does softmax before topk selection but then normalizes again after topk
+            # Deepseek moe does softmax before topk selection but then normalizes again after topk (if the option is enabled, but by default it isn't enabled the renormalization https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/modeling_deepseek.py)
             topk_idx = outputs[0]
             topk_probs = outputs[1]
+            # topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20) # renormalize after topk (just in case, as doing it again if its already normalized is just an identity operation)
 
             # idx = outputs[0].detach() # They use topk without sorting for speed
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
@@ -93,10 +94,10 @@ class GPTOssMoELogger(MoELogger):
 
     def _make_hook(self, path: str, layer: int):
         def hook(module, inputs, outputs: List[torch.Tensor]):
-            # outputs: (output, expert_weights) from https://huggingface.co/kernels-community/megablocks
-            expert_weights = outputs[1]
-            topk_logits, topk_idx = torch.topk(expert_weights, k=self.top_k_experts, dim=-1)
-            topk_probs = torch.softmax(topk_logits, dim=-1)
+            # outputs: (router_probs [seq_len, num_experts], router_idx [seq_len, top_k])
+            topk_idx = outputs[1]
+            router_sparse_probs = outputs[0]  # they do topk and then softmax https://github.com/huggingface/transformers/blob/v4.56.2/src/transformers/models/gpt_oss/modeling_gpt_oss.py
+            topk_probs = torch.gather(router_sparse_probs, dim=-1, index=topk_idx)
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
         return hook
@@ -105,8 +106,8 @@ class GPTOssMoELogger(MoELogger):
         handles = []
         # find all MoEGate modules and parse layer number from name
         for name, module in self.model.named_modules():
-            if module.__class__.__name__ == "GptOssMLP":
-                # We can't use "GptOssTopKRouter", becuase mlp uses a decorator to use the megablocks kernel instead
+            if module.__class__.__name__ == "GptOssTopKRouter":
+                # We can't use "GptOssTopKRouter" unless we deactivate hub kernels so we don't use megablocks
                 m = re.search(r"layers\.(\d+)", name)
                 layer = int(m.group(1)) if m else -1
                 h = module.register_forward_hook(self._make_hook(name, layer))
@@ -129,8 +130,8 @@ class TrinityMoELogger(MoELogger):
         def hook(module, inputs, outputs: List[torch.Tensor]):
             # outputs: (non_normalized_topk_scores, topk_idx)
             topk_idx = outputs[1]
-            topk_non_normalized_probs = outputs[0] # they do softmax and then topk (but they only normalize after topk if they are using sigmoid instead of softmax)
-            topk_probs = topk_non_normalized_probs / (topk_non_normalized_probs.sum(dim=-1, keepdim=True) + 1e-20)
+            topk_probs = outputs[0] # they do softmax and then topk (but they only normalize after topk if they are using sigmoid instead of softmax, https://huggingface.co/arcee-ai/Trinity-Mini/blob/main/modeling_afmoe.py)
+            # topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20)
             
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
@@ -165,7 +166,9 @@ class OLMoELogger(MoELogger):
             router_logits = outputs[1]
             router_weights = torch.softmax(router_logits, dim=-1)
             topk_probs, topk_idx = torch.topk(router_weights, k=self.top_k_experts, dim=-1)
-            topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20) # renormalize after topk
+
+            if module.norm_topk_prob: # grab the self.norm_topk_prob attribute from the module
+                topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20) # renormalize after topk
             
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}
 
