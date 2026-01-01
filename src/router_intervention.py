@@ -35,7 +35,7 @@ class RouterIntervention(ABC):
         """
         Args:
             model: The transformer model with MoE layers
-            prob_threhold: Optional probability threshold where if the routing probability is below this value we make the value instead equal to zero (meaning the expert will not contribute anything in the weighted sum of experts)
+            prob_threshold: Optional probability threshold where if the routing probability is below this value we make the value instead equal to zero (meaning the expert will not contribute anything in the weighted sum of experts)
         """
         self.model = model
         self.prob_threshold = prob_threshold
@@ -90,6 +90,7 @@ class OLMoERouterIntervention(RouterIntervention):
             routing_weights = F.softmax(router_logits, dim=1, dtype=torch.float)
             routing_weights, selected_experts = torch.topk(routing_weights, num_experts_per_tok, dim=-1)
 
+            # by default this is renormalized is deactivated in olmoe https://huggingface.co/allenai/OLMoE-1B-7B-0924/blob/main/config.json
             if norm_topk_prob:
                 routing_weights /= routing_weights.sum(dim=-1, keepdim=True)
 
@@ -242,6 +243,7 @@ class TrinityRouterIntervention(RouterIntervention):
                 denominator = top_scores.sum(dim=-1, keepdim=True) + 1e-20
                 top_scores = top_scores / denominator
 
+            # NOTE: Trinity by default uses sigmoid score function with route_scale (for this model the scale is bigger than 2.0, so I don't know if to apply the threshold before or after the scaling, for now we do it before as we have the normalized values between 0 and 1 before the scaling)
             if prob_threshold is not None:
                 # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold (we do this based on the prob value that will be used in the weighted sum of experts (even if its not renormalized to 1 in the top-k))
                 top_scores = torch.where(
@@ -316,8 +318,8 @@ class GPTOssRouterIntervention(RouterIntervention):
             # Apply probability threshold if needed
             if prob_threshold is not None and prob_threshold > 0.0:
                 # NOTE: routing_data contains the routing weights, need to modify them. gate_scal (torch.Tensor) has shape [n_tokens_pad * n_expts_act]
-                gate_scores_ref: torch.Tensor = routing_data.gate_scal
-                gate_scores_ref.masked_fill_(gate_scores_ref < prob_threshold, 0)
+                # TODO: maybe this is incorrect, like supposedly this is modifying correctly the value but maybe in reality the gate_scal tensor is not being used in the weighted sum of experts in the module.experts?
+                routing_data.gate_scal.masked_fill_(routing_data.gate_scal < prob_threshold, 0)
 
             routed_out = module.experts(hidden_states, routing_data, gather_idx, scatter_idx)
             routed_out = routed_out.reshape(batch_size, -1, module.router.hidden_dim)

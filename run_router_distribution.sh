@@ -3,8 +3,8 @@
 ACCOUNT_NAME=${1:-"def-ai"}
 
 declare -A MODEL_TYPES=(
-    ["deepseek_moe"]="deepseek-ai/deepseek-moe-16b-base"
-    # ["gpt_oss"]="openai/gpt-oss-20b"
+    # ["deepseek_moe"]="deepseek-ai/deepseek-moe-16b-base"
+    ["gpt_oss"]="openai/gpt-oss-20b"
     # ["olmoe"]="allenai/OLMoE-1B-7B-0125-Instruct"
     # ["trinity"]="arcee-ai/Trinity-Nano-Base"
 )
@@ -52,11 +52,11 @@ export UV_CACHE_DIR=\$SCRATCH/uv_cache
 export HF_CACHE=/\$SCRATCH/hf_cache
 export TRANSFORMERS_CACHE=/\$SCRATCH/hf_cache
 
-export USE_HUB_KERNELS=OFF # So as to not use the megablocks kernel for GPTOss
+export USE_HUB_KERNELS=OFF # So as to not use the megablocks kernel for GPTOss (this was added on version 5.* it seems, so it doing nothing for us now)
 
 export PYTHONBUFFERED=1
 
-srun --environment=pytorch2506 bash -c "
+srun --environment=pytorch2506 --export=all bash -c "
 
 START_TIME=\\\$(date +%s)
 
