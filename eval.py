@@ -10,12 +10,23 @@ import json
 from src.router_intervention import create_router_intervention, MODEL_INTERVENTION_CLASSES
 
 
-model_list = list(MODEL_INTERVENTION_CLASSES.keys())
+# Monkey-patch AutoModelForCausalLM.from_pretrained to skip quantization_config
+_original_from_pretrained = AutoModelForCausalLM.from_pretrained
+
+@classmethod
+def _patched_from_pretrained(cls, *args, **kwargs):
+    kwargs.pop('quantization_config', None) # Remove quantization_config if present just to fix the problem with initializing gpt_oss in the lm-eval-harness HFLM _create_model function, as gptoss is already an mxfp4 model but then we are also passing the dict quantization config to the from_pretrained method which causes an error
+    return _original_from_pretrained.__func__(cls, *args, **kwargs)
+
+AutoModelForCausalLM.from_pretrained = _patched_from_pretrained
+
+
+MODEL_LIST = list(MODEL_INTERVENTION_CLASSES.keys())
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate Llama models")
     parser.add_argument("--model_path", type=str, required=True, help="Path to model (HF name)")
-    parser.add_argument("--model_type", type=str, choices=model_list, default=None,
+    parser.add_argument("--model_type", type=str, choices=MODEL_LIST, default=None,
                        help="Model type for router intervention, if None, no intervention is applied")
     parser.add_argument("--prob_threshold", type=float, default=0.0, help="Probability threshold for router intervention, if 0.0, no intervention is applied")
     parser.add_argument("--tasks", type=str, default="hellaswag,arc_easy,winogrande", help="Comma-separated tasks")
@@ -31,7 +42,8 @@ def main():
     # Pass model path as string to HFLM for proper accelerate support
     lm_obj = HFLM(
         pretrained=args.model_path,
-        dtype="bfloat16",
+        # dtype="bfloat16",
+        dtype="auto",
         batch_size=args.batch_size,
         trust_remote_code=True,
         # parallelize=True # This is for dividing the model across gpus naively
@@ -65,7 +77,8 @@ def main():
             model=lm_obj,
             tasks=[task],  # Evaluate one task at a time
             batch_size=args.batch_size,
-            metadata=metadata
+            metadata=metadata,
+            # apply_chat_template="gptoss"==args.model_type,
         )
         
         if results:
