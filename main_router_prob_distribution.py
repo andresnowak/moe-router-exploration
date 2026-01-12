@@ -15,7 +15,7 @@ from accelerate import Accelerator
 
 from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger, TrinityMoELogger, OLMoELogger
 from src.router_intervention import create_router_intervention
-from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader
+from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader, hellaswag_loader, arc_loader
 
 
 def get_router_statistics(
@@ -94,6 +94,10 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = mmlu_pro_x_loader(
             tok=tok, max_examples=max_examples, batch_size=16
         )
+    elif "Rowan/hellaswag" in data_name:
+        loader_dict = hellaswag_loader(tok, max_examples, 32)
+    elif "allenai/ai2_arc" in data_name:
+        loader_dict = arc_loader(tok, max_examples, 32)
     else:
         raise Exception(f"{data_name} is not a valid data name")
 
@@ -101,7 +105,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         print(f"Starting on {accelerator.num_processes} processes...")
 
     items = list(loader_dict.items())
-    for i, ((subject, language), loader) in enumerate(items):
+    for i, ((language, subject), loader) in enumerate(items):
         if i % accelerator.num_processes != accelerator.process_index:
             print(f"Not my part {accelerator.process_index}")
             continue
@@ -109,7 +113,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         # Check if output folder already exists
         output_folder = os.path.join(
             out_dir,
-            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{language}/{subject}",
+            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{subject}/{language}",
         )
         if os.path.exists(output_folder) and not overwrite:
             print(f"Skipping {subject} ({language}) - output folder already exists: {output_folder}")
@@ -127,7 +131,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         # 3) save results
         distributions_path = os.path.join(
             out_dir,
-            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{language}/{subject}/routing_distributions.pt",
+            f"{model_name.replace('/', '-')}/{data_name.replace('/', '-')}/{subject}/{language}/routing_distributions.pt",
         )
         os.makedirs(os.path.dirname(distributions_path), exist_ok=True)
 
