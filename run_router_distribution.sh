@@ -3,15 +3,18 @@
 ACCOUNT_NAME=${1:-"def-ai"}
 
 declare -A MODEL_TYPES=(
-    # ["deepseek_moe"]="deepseek-ai/deepseek-moe-16b-base"
+    ["deepseek_moe"]="deepseek-ai/deepseek-moe-16b-base"
     ["gpt_oss"]="openai/gpt-oss-20b"
-    # ["olmoe"]="allenai/OLMoE-1B-7B-0125-Instruct"
-    # ["trinity"]="arcee-ai/Trinity-Nano-Base"
+    ["olmoe"]="allenai/OLMoE-1B-7B-0125-Instruct"
+    ["trinity"]="arcee-ai/Trinity-Nano-Base"
 )
 
 DATASETS=(
     "cais/mmlu"
     "TIGER-Lab/MMLU-Pro"
+    "Rowan/hellaswag"
+    "allenai/ai2_arc"
+    "allenai/winogrande"
 )
 
 for MODEL_KEY in "${!MODEL_TYPES[@]}"; do
@@ -22,7 +25,6 @@ for MODEL_KEY in "${!MODEL_TYPES[@]}"; do
     for DATASET in "${DATASETS[@]}"; do
         DATASET_COMMANDS+="accelerate launch \\
         --num_processes=4 \\
-        --mixed_precision=bf16 \\
         main_router_prob_distribution.py \\
         --model_name \"${MODEL_NAME}\" \\
         --out_data_dir \"\$SCRATCH/moe-router-exploration-data/router_prob_distribution\" \\
@@ -55,6 +57,10 @@ export TRANSFORMERS_CACHE=/\$SCRATCH/hf_cache
 export USE_HUB_KERNELS=OFF # So as to not use the megablocks kernel for GPTOss (this was added on version 5.* it seems, so it doing nothing for us now)
 
 export PYTHONBUFFERED=1
+
+export TORCH_NCCL_BLOCKING_WAIT=1
+export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+export TORCH_DISTRIBUTED_TIMEOUT_MINUTES=120
 
 srun --environment=pytorch2506 --export=all bash -c "
 
