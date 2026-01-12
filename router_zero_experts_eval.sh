@@ -16,18 +16,19 @@ export PYTHONUNBUFFERED=1
 declare -A MODELS=(
   # ["olmoe"]="allenai/OLMoE-1B-7B-0924"
   # ["deepseek-moe"]="deepseek-ai/deepseek-moe-16b-base"
-  # ["trinity"]="arcee-ai/Trinity-Nano-Base"
-  ["gptoss"]="openai/gpt-oss-20b"
+  ["trinity"]="arcee-ai/Trinity-Nano-Base"
+  # ["gptoss"]="openai/gpt-oss-20b"
 )
 
 PROB_THRESHOLDS=(0.1 0.0 0.01 0.05)
+# PROB_THRESHOLDS=(0.1 0.0 0.2 0.3)
 
 for key in "${!MODELS[@]}"; do
   for prob_threshold in "${PROB_THRESHOLDS[@]}"; do
     export MODEL_TYPE=${key}
     export MODEL_ID=${MODELS[$key]}
 
-    export BATCH_SIZE=32
+    export BATCH_SIZE=64
     export TASKS="hellaswag,arc_easy,winogrande,mmlu"
     export PROB_THRESHOLD=${prob_threshold}
     export OUTPUT_PATH="eval_results/moe_router_distribution_eval/${MODEL_TYPE}/${MODEL_TYPE}_eval_results_${PROB_THRESHOLD}.json"
