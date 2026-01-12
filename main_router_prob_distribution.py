@@ -41,6 +41,7 @@ def get_router_statistics(
     tracker = RoutingDistributionTracker(model, config, tok, routing_logger.num_layers, routing_logger.num_experts)
 
     for batch in loader:
+        print(accelerator.process_index, "Processing batch...")
         # Move batch to device since we're not using accelerator.prepare(loader)
         batch = {k: v.to(accelerator.device) for k, v in batch.items()}
 
@@ -68,7 +69,7 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
     tok = AutoTokenizer.from_pretrained(model_name)
 
     model_config = model.config
-    model = accelerator.prepare(model)
+    # model = accelerator.prepare(model) # This is for DDP, but we manually split by subject
 
     routing_logger = None
     if "deepseek-ai/deepseek-moe" in model_name:
