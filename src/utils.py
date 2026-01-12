@@ -454,3 +454,68 @@ def arc_loader(
         result[("EN", subset)] = loader
 
     return result
+
+
+def winogrande_collate(batch_of_examples: List[Dict[str, Any]], tok: PreTrainedTokenizer):
+    """
+    `batch_of_examples`: list of dicts from the dataset
+    returns: dict with keys ['input_ids', 'attention_mask'] of shape (B, T)
+    """
+    prompts = []
+    for ex in batch_of_examples:
+        for option in ["option1", "option2"]:
+            idx = ex["sentence"].index("_")
+
+            prompt = ex["sentence"][:idx] + option
+            prompts.append(prompt)
+
+    # tokenise one-by-one first (fast enough)
+    enc = tok(
+        prompts, truncation=True, max_length=1024, padding=False
+    )  # no padding here – we do it tensor-wise below
+
+    # convert to tensors and pad
+    input_ids = [torch.tensor(x) for x in enc["input_ids"]]
+    attention_mask = [torch.tensor(x) for x in enc["attention_mask"]]
+
+    return {
+        "input_ids": pad_sequence(
+            input_ids, batch_first=True, padding_value=tok.pad_token_id
+        ),
+        "attention_mask": pad_sequence(
+            attention_mask, batch_first=True, padding_value=0
+        ),
+    }
+
+
+def winogrande_loader(
+    tok: PreTrainedTokenizer, max_examples: int | None, batch_size: int = 8
+) -> Dict[Tuple[str, str], DataLoader]:
+    """
+    Load Winogrande dataset split and return a dict of DataLoaders.
+
+    Returns:
+        Dict[Tuple[language, subset], DataLoader]
+    """
+    result = {}
+
+    for subset in ["winogrande_xl"]:
+        ds_val = load_dataset("winogrande", subset, split="validation")
+
+        if max_examples is not None:
+            ds_val = ds_val.select(range(min(len(ds_val), max_examples)))
+
+        def _collate_fn(batch):
+            return winogrande_collate(batch, tok)
+
+        loader = DataLoader(
+            ds_val,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=_collate_fn,
+            num_workers=0,
+        )
+
+        result[("EN", subset)] = loader
+
+    return result

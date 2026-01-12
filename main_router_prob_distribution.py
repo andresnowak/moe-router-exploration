@@ -15,7 +15,7 @@ from accelerate import Accelerator
 
 from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger, TrinityMoELogger, OLMoELogger
 from src.router_intervention import create_router_intervention
-from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader, hellaswag_loader, arc_loader
+from src.utils import mmlu_loader, mmlu_pro_loader, mmmlu_loader, mmlu_pro_x_loader, hellaswag_loader, arc_loader, winogrande_loader
 
 
 def get_router_statistics(
@@ -98,6 +98,8 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         loader_dict = hellaswag_loader(tok, max_examples, 32)
     elif "allenai/ai2_arc" in data_name:
         loader_dict = arc_loader(tok, max_examples, 32)
+    elif "allenai/winogrande" in data_name:
+        loader_dict = winogrande_loader(tok, max_examples, 32)
     else:
         raise Exception(f"{data_name} is not a valid data name")
 
@@ -109,6 +111,8 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
         if i % accelerator.num_processes != accelerator.process_index:
             print(f"Not my part {accelerator.process_index}")
             continue
+        
+        print(f"{accelerator.process_index} Processing {subject} ({language})...")
 
         # Check if output folder already exists
         output_folder = os.path.join(
@@ -139,6 +143,10 @@ def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str
 
         print(f"Done. Processed {len(loader.dataset) or 'all'} examples in {time.time() - start_time} seconds.")
         print(f" • raw distributions saved to {distributions_path}")
+    
+    accelerator.wait_for_everyone()
+    if accelerator.is_main_process:
+        print("All done!")
 
 
 if __name__ == "__main__":
