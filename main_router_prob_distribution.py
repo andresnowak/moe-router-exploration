@@ -1,6 +1,7 @@
 import os
 import argparse
 import time
+from datetime import timedelta
 
 import torch
 from transformers import (
@@ -12,6 +13,7 @@ from transformers import (
 )
 from torch.utils.data import DataLoader
 from accelerate import Accelerator
+from accelerate.utils import InitProcessGroupKwargs
 
 from src.router_logger import DeepSeekMoELogger, RoutingDistributionTracker, GPTOssMoELogger, MoELogger, TrinityMoELogger, OLMoELogger
 from src.router_intervention import create_router_intervention
@@ -56,7 +58,9 @@ def get_router_statistics(
 
 def main(model_name: str, data_name: str, max_examples: int | None, out_dir: str, overwrite: bool = False):
     # 1) load config & model with router‐logits enabled
-    accelerator = Accelerator(mixed_precision="bf16")
+    process_group_kwargs = InitProcessGroupKwargs(timeout=timedelta(seconds=3600)) # 3600 seconds = 60 minutes
+
+    accelerator = Accelerator(mixed_precision="bf16", kwargs_handlers=[process_group_kwargs])
     device = accelerator.device
 
     model = AutoModelForCausalLM.from_pretrained(
