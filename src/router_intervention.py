@@ -243,7 +243,9 @@ class TrinityRouterIntervention(RouterIntervention):
                 denominator = top_scores.sum(dim=-1, keepdim=True) + 1e-20
                 top_scores = top_scores / denominator
 
-            # NOTE: Trinity by default uses sigmoid score function with route_scale (for this model the scale is bigger than 2.0, so I don't know if to apply the threshold before or after the scaling, for now we do it before as we have the normalized values between 0 and 1 before the scaling)
+            top_scores = top_scores * module.route_scale
+
+            # NOTE: Trinity by default uses sigmoid score function with route_scale (for this model the scale is bigger than 2.0, so I don't know if to apply the threshold before or after the scaling, for now we do after the scaling as we are visualizing this values in the router exploration)
             if prob_threshold is not None:
                 # Make the routing probability 0 if the routing probability of that expert in the top-k is below the threshold (we do this based on the prob value that will be used in the weighted sum of experts (even if its not renormalized to 1 in the top-k))
                 top_scores = torch.where(
@@ -252,7 +254,6 @@ class TrinityRouterIntervention(RouterIntervention):
                     top_scores
                 )
 
-            top_scores = top_scores * module.route_scale
             return top_scores, selected_experts
 
         module.forward = patched_forward
