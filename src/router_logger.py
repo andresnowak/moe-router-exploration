@@ -133,7 +133,7 @@ class TrinityMoELogger(MoELogger):
         def hook(module, inputs, outputs: List[torch.Tensor]):
             # outputs: (non_normalized_topk_scores, topk_idx)
             topk_idx = outputs[1]
-            topk_probs = outputs[0] # they do softmax and then topk (but they only normalize after topk if they are using sigmoid instead of softmax, https://huggingface.co/arcee-ai/Trinity-Mini/blob/main/modeling_afmoe.py)
+            topk_probs = outputs[0] # they do softmax and then topk (but they only normalize after topk if they are using sigmoid instead of softmax, https://huggingface.co/arcee-ai/Trinity-Mini/blob/main/modeling_afmoe.py). The one they really use here is sigmoid, then topk, then a renormalization and then they multiply by a router scale factor
             # topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-20)
             
             self.routing_logs[path] = {"indices": topk_idx.detach(), "probs": topk_probs.detach(), "layer_num": layer}

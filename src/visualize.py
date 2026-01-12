@@ -133,15 +133,13 @@ def plot_box(df, title: str = "plot box"):
     plt.show()
 
 
-def plot_router_distribution(global_probs: torch.Tensor):
+def plot_router_distribution(global_probs: torch.Tensor, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
     """
     Plot histogram of router probability distribution with custom bins.
 
     Args:
         global_probs: Tensor of router probabilities
     """
-    # Define custom bin edges
-    bin_edges = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
     # Count values in each bin
     counts, _ = np.histogram(global_probs.numpy(), bins=bin_edges)
@@ -164,7 +162,7 @@ def plot_router_distribution(global_probs: torch.Tensor):
     plt.show()
 
 
-def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor]], layer: int, ncols: int = 6):
+def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor]], layer: int, ncols: int = 6, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
     """
     Plot grid of histograms showing router probability distribution per expert.
 
@@ -172,8 +170,6 @@ def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor
         per_expert_probs: List of tensors, one per expert
         ncols: Number of columns in subplot grid
     """
-    # Define custom bin edges
-    bin_edges = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     # Create labels for each bin
     labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(len(bin_edges)-1)]
 
@@ -208,7 +204,7 @@ def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor
     plt.show()
 
 
-def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], ncols: int = 4):
+def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], ncols: int = 4, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
     """
     Plot grid of histograms showing router probability distribution per layer.
 
@@ -216,8 +212,6 @@ def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], ncol
         per_layer_probs: List of tensors, one per layer
         ncols: Number of columns in subplot grid
     """
-    # Define custom bin edges
-    bin_edges = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     # Create labels for each bin
     labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(len(bin_edges)-1)]
 
