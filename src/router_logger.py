@@ -236,7 +236,7 @@ class RoutingStatisticsTracker:
         tok = input_ids.view(-1).cpu()  # [B*S]
 
         for _, info in routing_logs.items():
-            indices = info["indices"].cpu()  # (B, S, K) [GPU]
+            indices = info["indices"].long().cpu()  # (B, S, K) [GPU]
             layer_num = info["layer_num"]
             K = indices.size(-1) # K = self.top_k experts
 
@@ -359,9 +359,9 @@ class RoutingDistributionTracker:
             routing_logs: Dict[layer_num] -> {"indices": [B, S, K], "probs": [B, S, K]}
         """
         for _, info in routing_logs.items():
-            indices = info["indices"].cpu().view(-1)  # (B*S*K)
+            indices = info["indices"].long().cpu().view(-1)  # (B*S*K)
             layer_num = info["layer_num"]
-            probs = info["probs"].cpu().view(-1)  # (B*S*K)
+            probs = info["probs"].float().cpu().view(-1)  # (B*S*K)
 
             # Vectorized: gather probs for each expert across all ranks
             for expert_idx in range(self.num_experts):
