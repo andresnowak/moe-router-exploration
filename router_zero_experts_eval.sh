@@ -23,7 +23,7 @@ declare -A MODELS=(
 declare -A MODEL_PROB_THRESHOLDS=(
   ["olmoe"]="0.1 0.0 0.01 0.05"
   ["deepseek-moe"]="0.1 0.0 0.01 0.05"
-  ["trinity"]="0.1 0.0 0.2 0.3"
+  ["trinity"]="0.1 0.0 0.2 0.3 0.5"
   ["gptoss"]="0.1 0.0 0.01 0.05 0.2"
 )
 
