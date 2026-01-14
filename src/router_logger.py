@@ -167,7 +167,7 @@ class OLMoELogger(MoELogger):
         def hook(module, inputs, outputs: List[torch.Tensor]):
             # outputs: (hidden_states, router_logits)
             router_logits = outputs[1]
-            router_weights = torch.softmax(router_logits, dim=-1)
+            router_weights = torch.softmax(router_logits, dtype=torch.float32, dim=-1)
             topk_probs, topk_idx = torch.topk(router_weights, k=self.top_k_experts, dim=-1)
 
             if module.norm_topk_prob: # grab the self.norm_topk_prob attribute from the module
