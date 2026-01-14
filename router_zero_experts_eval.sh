@@ -14,22 +14,26 @@ export NCCL_DEBUG=WARN
 export PYTHONUNBUFFERED=1
 
 declare -A MODELS=(
-  # ["olmoe"]="allenai/OLMoE-1B-7B-0924"
-  # ["deepseek-moe"]="deepseek-ai/deepseek-moe-16b-base"
+  ["olmoe"]="allenai/OLMoE-1B-7B-0924"
+  ["deepseek-moe"]="deepseek-ai/deepseek-moe-16b-base"
   ["trinity"]="arcee-ai/Trinity-Nano-Base"
-  # ["gptoss"]="openai/gpt-oss-20b"
+  ["gptoss"]="openai/gpt-oss-20b"
 )
 
-PROB_THRESHOLDS=(0.1 0.0 0.01 0.05)
-# PROB_THRESHOLDS=(0.1 0.0 0.2 0.3)
+declare -A MODEL_PROB_THRESHOLDS=(
+  ["olmoe"]="0.1 0.0 0.01 0.05"
+  ["deepseek-moe"]="0.1 0.0 0.01 0.05"
+  ["trinity"]="0.1 0.0 0.2 0.3"
+  ["gptoss"]="0.1 0.0 0.01 0.05 0.2"
+)
 
 for key in "${!MODELS[@]}"; do
-  for prob_threshold in "${PROB_THRESHOLDS[@]}"; do
+  for prob_threshold in ${MODEL_PROB_THRESHOLDS[$key]}; do
     export MODEL_TYPE=${key}
     export MODEL_ID=${MODELS[$key]}
 
     export BATCH_SIZE=64
-    export TASKS="hellaswag,arc_easy,winogrande,mmlu"
+    export TASKS="hellaswag,arc_easy,winogrande,mmlu,arc_challenge,lambada_openai_mt_stablelm_es,lambada_openai_mt_stablelm_en,lambada_openai_mt_stablelm_de,lambada_openai_mt_stablelm_fr" # triviaqa, mmlu_pro
     export PROB_THRESHOLD=${prob_threshold}
     export OUTPUT_PATH="eval_results/moe_router_distribution_eval/${MODEL_TYPE}/${MODEL_TYPE}_eval_results_${PROB_THRESHOLD}.json"
 
