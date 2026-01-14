@@ -102,7 +102,7 @@ class OLMoERouterIntervention(RouterIntervention):
             routing_weights = F.softmax(router_logits, dim=1, dtype=torch.float)
             routing_weights, selected_experts = torch.topk(routing_weights, num_experts_per_tok, dim=-1)
 
-            # by default this is renormalized is deactivated in olmoe https://huggingface.co/allenai/OLMoE-1B-7B-0924/blob/main/config.json
+            # by default this is renormalized is deactivated in olmoe https://huggingface.co/allenai/OLMoE-1B-7B-0125/blob/main/config.json
             if norm_topk_prob:
                 routing_weights /= routing_weights.sum(dim=-1, keepdim=True)
 
