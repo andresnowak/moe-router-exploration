@@ -20,6 +20,18 @@ if not hasattr(DynamicCache, 'get_usable_length'):
             return self.get_seq_length()
     setattr(DynamicCache, 'get_usable_length', get_usable_length)
 
+if not hasattr(DynamicCache, 'seen_tokens'):
+    @property
+    def seen_tokens(self):
+        return self.get_seq_length()
+    setattr(DynamicCache, 'seen_tokens', seen_tokens)
+
+if not hasattr(DynamicCache, 'get_max_length'):
+    def get_max_length(self):
+        # DynamicCache doesn't have a max length, return None
+        return None
+    setattr(DynamicCache, 'get_max_length', get_max_length)
+
 # Global variable for triton kernels hub (initialized on first use)
 triton_kernels_hub = None
 
@@ -322,7 +334,7 @@ class GPTOssRouterIntervention(RouterIntervention):
                 # TODO: maybe this is incorrect, like supposedly this is modifying correctly the value but maybe in reality the gate_scal tensor is not being used in the weighted sum of experts in the module.experts?
                 routing_data.gate_scal.masked_fill_(routing_data.gate_scal < prob_threshold, 0)
 
-            routed_out = module.experts(hidden_states, routing_data, gather_idx, scatter_idx)
+            routed_out: Unknown = module.experts(hidden_states, routing_data, gather_idx, scatter_idx)
             routed_out = routed_out.reshape(batch_size, -1, module.router.hidden_dim)
 
             return routed_out, router_logits
