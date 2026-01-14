@@ -33,6 +33,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--output_path", type=str, default="eval_results.json")
+    parser.add_argument("--overwrite", action="store_true", help="Whether to overwrite existing results")
 
     return parser.parse_args()
 
@@ -70,7 +71,31 @@ def main():
     # Evaluate tasks with different metadata
     all_results = {"results": {}, "configs": {}}
 
+    if os.path.exists(args.output_path) and not args.overwrite:
+        with open(args.output_path, "r") as f:
+            all_results = json.load(f)
+        
+        if "model_info" not in all_results:
+            if lm_obj.accelerator.is_main_process:
+                print("Warning: Loaded results do not contain model info, terminating to avoid confusion.")
+            return
+        elif all_results["model_info"]["model_path"] != args.model_path or all_results["model_info"]["model_type"] != args.model_type:
+            if lm_obj.accelerator.is_main_process:
+                print("Warning: Loaded results are for a different model or model type than the current evaluation. Terminating to avoid confusion.")
+            return
+
+        print(f"Loaded existing results from {args.output_path}, use --overwrite to re-evaluate.")
+
+
     for task in tasks:
+        if task in all_results["results"]:
+            if lm_obj.accelerator.is_main_process:
+                print(f"Skipping {task}, already evaluated.")
+            continue
+        
+        if lm_obj.accelerator.is_main_process:
+            print(f"Evaluating task: {task}")
+
         metadata = task_metadata.get(task, {"pretrained": args.model_path})
         
         results = evaluator.simple_evaluate(
