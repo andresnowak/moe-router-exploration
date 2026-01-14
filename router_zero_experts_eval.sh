@@ -14,7 +14,7 @@ export NCCL_DEBUG=WARN
 export PYTHONUNBUFFERED=1
 
 declare -A MODELS=(
-  ["olmoe"]="allenai/OLMoE-1B-7B-0924"
+  ["olmoe"]="allenai/OLMoE-1B-7B-0125"
   ["deepseek-moe"]="deepseek-ai/deepseek-moe-16b-base"
   ["trinity"]="arcee-ai/Trinity-Nano-Base"
   ["gptoss"]="openai/gpt-oss-20b"

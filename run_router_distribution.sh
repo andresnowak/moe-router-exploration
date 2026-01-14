@@ -5,7 +5,7 @@ ACCOUNT_NAME=${1:-"def-ai"}
 declare -A MODEL_TYPES=(
     ["deepseek_moe"]="deepseek-ai/deepseek-moe-16b-base"
     ["gpt_oss"]="openai/gpt-oss-20b"
-    ["olmoe"]="allenai/OLMoE-1B-7B-0125-Instruct"
+    ["olmoe"]="allenai/OLMoE-1B-7B-0125"
     ["trinity"]="arcee-ai/Trinity-Nano-Base"
 )
 
