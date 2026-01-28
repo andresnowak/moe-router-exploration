@@ -358,18 +358,32 @@ class RoutingDistributionTracker:
             batch: Dict with "input_ids" [B, S]
             routing_logs: Dict[layer_num] -> {"indices": [B, S, K], "probs": [B, S, K]}
         """
+        input_ids = batch["input_ids"].cpu()  # (B, S)
+        B, S = input_ids.shape
+
+        # Create mask for non-padding tokens
+        assert self.tok.pad_token_id is not None, "Tokenizer must have a pad_token_id for masking."
+
+        pad_token_id = self.tok.pad_token_id
+        non_pad_mask = (input_ids != pad_token_id).view(-1)  # [B*S]
+
         for _, info in routing_logs.items():
-            indices = info["indices"].long().cpu().view(-1)  # (B*S*K)
+            indices = info["indices"].long().cpu()  # (B, S, K)
             layer_num = info["layer_num"]
-            probs = info["probs"].float().cpu().view(-1)  # (B*S*K)
+            probs = info["probs"].float().cpu()  # (B, S, K)
+
+            # Expand non_pad_mask to match the K dimension: [B*S] -> [B*S*K]
+            non_pad_mask_expanded = non_pad_mask.unsqueeze(-1).expand(B * S, indices.size(-1)).reshape(-1)  # [B*S*K]
+
+            indices = indices.view(-1)  # (B*S*K)
+            probs = probs.view(-1)  # (B*S*K)
 
             # Vectorized: gather probs for each expert across all ranks
             for expert_idx in range(self.num_experts):
-                # Find all positions where this expert appears (across all ranks)
-                mask = (indices == expert_idx)  # [B*S*K]
-                if mask.any():
+                # Find all positions where this expert appears (across all ranks) and is not a padding token
+                expert_mask = (indices == expert_idx) & non_pad_mask_expanded  # [B*S*K]
+                if expert_mask.any():
                     # Get the probabilities where this expert was selected
-                    expert_mask = indices == expert_idx  # [B*S*K]
                     expert_probs = probs[expert_mask]  # [num_occurrences]
                     self.values[layer_num][expert_idx].append(expert_probs)
 
