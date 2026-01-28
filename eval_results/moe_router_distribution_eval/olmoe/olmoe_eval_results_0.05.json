@@ -2,207 +2,207 @@
   "results": {
     "hellaswag": {
       "alias": "hellaswag",
-      "acc,none": 0.48526190001991637,
-      "acc_stderr,none": 0.004987613263678212,
-      "acc_norm,none": 0.6491734714200359,
-      "acc_norm_stderr,none": 0.004762534245488198
+      "acc,none": 0.5290778729336786,
+      "acc_stderr,none": 0.004981336318033596,
+      "acc_norm,none": 0.7044413463453495,
+      "acc_norm_stderr,none": 0.004553609405747011
     },
     "arc_easy": {
       "alias": "arc_easy",
-      "acc,none": 0.7348484848484849,
-      "acc_stderr,none": 0.009057621139172679,
-      "acc_norm,none": 0.7079124579124579,
-      "acc_norm_stderr,none": 0.009330705616569084
+      "acc,none": 0.7167508417508418,
+      "acc_stderr,none": 0.009245632200075576,
+      "acc_norm,none": 0.7117003367003367,
+      "acc_norm_stderr,none": 0.00929477425202976
     },
     "winogrande": {
       "alias": "winogrande",
-      "acc,none": 0.5895816890292028,
-      "acc_stderr,none": 0.013825107120036002
+      "acc,none": 0.6235201262825573,
+      "acc_stderr,none": 0.01361693196066715
     },
     "mmlu": {
-      "acc,none": 0.3517305227175616,
-      "acc_stderr,none": 0.003951489788690109,
+      "acc,none": 0.39695200113943885,
+      "acc_stderr,none": 0.00401469942929826,
       "alias": "mmlu"
     },
     "mmlu_humanities": {
-      "acc,none": 0.3370882040382572,
-      "acc_stderr,none": 0.00678708865333101,
+      "acc,none": 0.39128586609989374,
+      "acc_stderr,none": 0.006897448702881307,
       "alias": " - humanities"
     },
     "mmlu_formal_logic": {
       "alias": "  - formal_logic",
-      "acc,none": 0.30952380952380953,
-      "acc_stderr,none": 0.04134913018303316
+      "acc,none": 0.373015873015873,
+      "acc_stderr,none": 0.043255060420170875
     },
     "mmlu_high_school_european_history": {
       "alias": "  - high_school_european_history",
-      "acc,none": 0.3333333333333333,
-      "acc_stderr,none": 0.036810508691615514
+      "acc,none": 0.5151515151515151,
+      "acc_stderr,none": 0.039025510073744524
     },
     "mmlu_high_school_us_history": {
       "alias": "  - high_school_us_history",
-      "acc,none": 0.43137254901960786,
-      "acc_stderr,none": 0.034760990605016404
+      "acc,none": 0.5882352941176471,
+      "acc_stderr,none": 0.03454236585380609
     },
     "mmlu_high_school_world_history": {
       "alias": "  - high_school_world_history",
-      "acc,none": 0.4472573839662447,
-      "acc_stderr,none": 0.032365642516141935
+      "acc,none": 0.5569620253164557,
+      "acc_stderr,none": 0.03233532777533478
     },
     "mmlu_international_law": {
       "alias": "  - international_law",
-      "acc,none": 0.39669421487603307,
-      "acc_stderr,none": 0.044658697805310066
+      "acc,none": 0.4380165289256198,
+      "acc_stderr,none": 0.045291468044357935
     },
     "mmlu_jurisprudence": {
       "alias": "  - jurisprudence",
-      "acc,none": 0.46296296296296297,
-      "acc_stderr,none": 0.04820403072760628
+      "acc,none": 0.5092592592592593,
+      "acc_stderr,none": 0.04832853553437052
     },
     "mmlu_logical_fallacies": {
       "alias": "  - logical_fallacies",
-      "acc,none": 0.39263803680981596,
-      "acc_stderr,none": 0.038367409078310266
+      "acc,none": 0.4539877300613497,
+      "acc_stderr,none": 0.03911701904677184
     },
     "mmlu_moral_disputes": {
       "alias": "  - moral_disputes",
-      "acc,none": 0.3583815028901734,
-      "acc_stderr,none": 0.025816756791584197
+      "acc,none": 0.45375722543352603,
+      "acc_stderr,none": 0.026803720583206205
     },
     "mmlu_moral_scenarios": {
       "alias": "  - moral_scenarios",
-      "acc,none": 0.25139664804469275,
-      "acc_stderr,none": 0.014508979453554024
+      "acc,none": 0.2435754189944134,
+      "acc_stderr,none": 0.014355911964767933
     },
     "mmlu_philosophy": {
       "alias": "  - philosophy",
-      "acc,none": 0.40514469453376206,
-      "acc_stderr,none": 0.02788238379132595
+      "acc,none": 0.4340836012861736,
+      "acc_stderr,none": 0.028150232244535566
     },
     "mmlu_prehistory": {
       "alias": "  - prehistory",
-      "acc,none": 0.4382716049382716,
-      "acc_stderr,none": 0.027607914087400473
+      "acc,none": 0.48148148148148145,
+      "acc_stderr,none": 0.02780165621232363
     },
     "mmlu_professional_law": {
       "alias": "  - professional_law",
-      "acc,none": 0.27444589308996087,
-      "acc_stderr,none": 0.011397043163078146
+      "acc,none": 0.31681877444589307,
+      "acc_stderr,none": 0.011882349954723061
     },
     "mmlu_world_religions": {
       "alias": "  - world_religions",
-      "acc,none": 0.5730994152046783,
-      "acc_stderr,none": 0.03793620616529916
+      "acc,none": 0.7192982456140351,
+      "acc_stderr,none": 0.03446296217088429
     },
     "mmlu_other": {
-      "acc,none": 0.4119729642742195,
-      "acc_stderr,none": 0.008658314895372225,
+      "acc,none": 0.45284840682330224,
+      "acc_stderr,none": 0.008747208923284977,
       "alias": " - other"
     },
     "mmlu_business_ethics": {
       "alias": "  - business_ethics",
-      "acc,none": 0.33,
-      "acc_stderr,none": 0.04725815626252609
+      "acc,none": 0.41,
+      "acc_stderr,none": 0.04943110704237104
     },
     "mmlu_clinical_knowledge": {
       "alias": "  - clinical_knowledge",
-      "acc,none": 0.3471698113207547,
-      "acc_stderr,none": 0.029300101705549662
+      "acc,none": 0.38113207547169814,
+      "acc_stderr,none": 0.02989060968628662
     },
     "mmlu_college_medicine": {
       "alias": "  - college_medicine",
-      "acc,none": 0.24277456647398843,
-      "acc_stderr,none": 0.03269263806141769
+      "acc,none": 0.3352601156069364,
+      "acc_stderr,none": 0.035995863012470736
     },
     "mmlu_global_facts": {
       "alias": "  - global_facts",
-      "acc,none": 0.26,
-      "acc_stderr,none": 0.0440844002276808
+      "acc,none": 0.3,
+      "acc_stderr,none": 0.04605661864718382
     },
     "mmlu_human_aging": {
       "alias": "  - human_aging",
-      "acc,none": 0.4439461883408072,
-      "acc_stderr,none": 0.03334625674242722
+      "acc,none": 0.45739910313901344,
+      "acc_stderr,none": 0.03343577705583056
     },
     "mmlu_management": {
       "alias": "  - management",
-      "acc,none": 0.4174757281553398,
-      "acc_stderr,none": 0.04882840548212234
+      "acc,none": 0.4563106796116505,
+      "acc_stderr,none": 0.04931801994220418
     },
     "mmlu_marketing": {
       "alias": "  - marketing",
-      "acc,none": 0.48717948717948717,
-      "acc_stderr,none": 0.032745319388423545
+      "acc,none": 0.5470085470085471,
+      "acc_stderr,none": 0.03261099873098619
     },
     "mmlu_medical_genetics": {
       "alias": "  - medical_genetics",
-      "acc,none": 0.44,
-      "acc_stderr,none": 0.049888765156985884
+      "acc,none": 0.55,
+      "acc_stderr,none": 0.05
     },
     "mmlu_miscellaneous": {
       "alias": "  - miscellaneous",
-      "acc,none": 0.5478927203065134,
-      "acc_stderr,none": 0.017797751493865567
+      "acc,none": 0.5951468710089399,
+      "acc_stderr,none": 0.017553246467720215
     },
     "mmlu_nutrition": {
       "alias": "  - nutrition",
-      "acc,none": 0.3464052287581699,
-      "acc_stderr,none": 0.027245613047215324
+      "acc,none": 0.4019607843137255,
+      "acc_stderr,none": 0.028074158947600694
     },
     "mmlu_professional_accounting": {
       "alias": "  - professional_accounting",
-      "acc,none": 0.28368794326241137,
-      "acc_stderr,none": 0.02689170942834399
+      "acc,none": 0.3120567375886525,
+      "acc_stderr,none": 0.027640120545169986
     },
     "mmlu_professional_medicine": {
       "alias": "  - professional_medicine",
-      "acc,none": 0.3602941176470588,
-      "acc_stderr,none": 0.02916312857067069
+      "acc,none": 0.35294117647058826,
+      "acc_stderr,none": 0.02902942281568144
     },
     "mmlu_virology": {
       "alias": "  - virology",
-      "acc,none": 0.4457831325301205,
-      "acc_stderr,none": 0.03869543323472097
+      "acc,none": 0.43373493975903615,
+      "acc_stderr,none": 0.03858158940685518
     },
     "mmlu_social_sciences": {
-      "acc,none": 0.37341566460838477,
-      "acc_stderr,none": 0.008588435415654972,
+      "acc,none": 0.42671433214169646,
+      "acc_stderr,none": 0.00873212925280662,
       "alias": " - social sciences"
     },
     "mmlu_econometrics": {
       "alias": "  - econometrics",
-      "acc,none": 0.20175438596491227,
-      "acc_stderr,none": 0.03775205013583637
+      "acc,none": 0.19298245614035087,
+      "acc_stderr,none": 0.03712454853721366
     },
     "mmlu_high_school_geography": {
       "alias": "  - high_school_geography",
-      "acc,none": 0.35353535353535354,
-      "acc_stderr,none": 0.03406086723547151
+      "acc,none": 0.46464646464646464,
+      "acc_stderr,none": 0.035534363688280626
     },
     "mmlu_high_school_government_and_politics": {
       "alias": "  - high_school_government_and_politics",
-      "acc,none": 0.44559585492227977,
-      "acc_stderr,none": 0.03587014986075661
+      "acc,none": 0.5440414507772021,
+      "acc_stderr,none": 0.03594413711272437
     },
     "mmlu_high_school_macroeconomics": {
       "alias": "  - high_school_macroeconomics",
-      "acc,none": 0.26666666666666666,
-      "acc_stderr,none": 0.022421273612923797
+      "acc,none": 0.32564102564102565,
+      "acc_stderr,none": 0.023759665767412275
     },
     "mmlu_high_school_microeconomics": {
       "alias": "  - high_school_microeconomics",
-      "acc,none": 0.2857142857142857,
-      "acc_stderr,none": 0.02934457250063432
+      "acc,none": 0.31512605042016806,
+      "acc_stderr,none": 0.030176808288974327
     },
     "mmlu_high_school_psychology": {
       "alias": "  - high_school_psychology",
-      "acc,none": 0.46972477064220186,
+      "acc,none": 0.5302752293577981,
       "acc_stderr,none": 0.02139798860493688
     },
     "mmlu_human_sexuality": {
       "alias": "  - human_sexuality",
-      "acc,none": 0.4122137404580153,
-      "acc_stderr,none": 0.043171711948702576
+      "acc,none": 0.5190839694656488,
+      "acc_stderr,none": 0.043820947055509894
     },
     "mmlu_professional_psychology": {
       "alias": "  - professional_psychology",
@@ -211,98 +211,98 @@
     },
     "mmlu_public_relations": {
       "alias": "  - public_relations",
-      "acc,none": 0.35454545454545455,
-      "acc_stderr,none": 0.04582004841505413
+      "acc,none": 0.41818181818181815,
+      "acc_stderr,none": 0.04724577405731571
     },
     "mmlu_security_studies": {
       "alias": "  - security_studies",
-      "acc,none": 0.27346938775510204,
-      "acc_stderr,none": 0.028535560337128486
+      "acc,none": 0.34285714285714286,
+      "acc_stderr,none": 0.030387262919547717
     },
     "mmlu_sociology": {
       "alias": "  - sociology",
-      "acc,none": 0.5373134328358209,
-      "acc_stderr,none": 0.03525675167467975
+      "acc,none": 0.5771144278606966,
+      "acc_stderr,none": 0.03493231777421285
     },
     "mmlu_us_foreign_policy": {
       "alias": "  - us_foreign_policy",
-      "acc,none": 0.44,
-      "acc_stderr,none": 0.049888765156985884
+      "acc,none": 0.59,
+      "acc_stderr,none": 0.04943110704237104
     },
     "mmlu_stem": {
-      "acc,none": 0.29305423406279735,
-      "acc_stderr,none": 0.00800416975946362,
+      "acc,none": 0.3212813193783698,
+      "acc_stderr,none": 0.008174298684953844,
       "alias": " - stem"
     },
     "mmlu_abstract_algebra": {
       "alias": "  - abstract_algebra",
-      "acc,none": 0.24,
-      "acc_stderr,none": 0.04292346959909278
+      "acc,none": 0.4,
+      "acc_stderr,none": 0.0492365963917331
     },
     "mmlu_anatomy": {
       "alias": "  - anatomy",
-      "acc,none": 0.4222222222222222,
-      "acc_stderr,none": 0.04266763404099585
+      "acc,none": 0.45925925925925926,
+      "acc_stderr,none": 0.04304979692464244
     },
     "mmlu_astronomy": {
       "alias": "  - astronomy",
-      "acc,none": 0.375,
-      "acc_stderr,none": 0.039397364351956274
+      "acc,none": 0.46710526315789475,
+      "acc_stderr,none": 0.040601270352364015
     },
     "mmlu_college_biology": {
       "alias": "  - college_biology",
-      "acc,none": 0.3541666666666667,
-      "acc_stderr,none": 0.03999411135753542
+      "acc,none": 0.4166666666666667,
+      "acc_stderr,none": 0.041227287076512804
     },
     "mmlu_college_chemistry": {
       "alias": "  - college_chemistry",
-      "acc,none": 0.26,
-      "acc_stderr,none": 0.0440844002276808
+      "acc,none": 0.24,
+      "acc_stderr,none": 0.04292346959909278
     },
     "mmlu_college_computer_science": {
       "alias": "  - college_computer_science",
-      "acc,none": 0.27,
-      "acc_stderr,none": 0.04461960433384737
+      "acc,none": 0.34,
+      "acc_stderr,none": 0.04760952285695233
     },
     "mmlu_college_mathematics": {
       "alias": "  - college_mathematics",
-      "acc,none": 0.28,
-      "acc_stderr,none": 0.045126085985421296
+      "acc,none": 0.25,
+      "acc_stderr,none": 0.04351941398892446
     },
     "mmlu_college_physics": {
       "alias": "  - college_physics",
-      "acc,none": 0.2549019607843137,
-      "acc_stderr,none": 0.0433643270799318
+      "acc,none": 0.27450980392156865,
+      "acc_stderr,none": 0.044405219061793254
     },
     "mmlu_computer_security": {
       "alias": "  - computer_security",
-      "acc,none": 0.48,
+      "acc,none": 0.52,
       "acc_stderr,none": 0.05021167315686783
     },
     "mmlu_conceptual_physics": {
       "alias": "  - conceptual_physics",
-      "acc,none": 0.3574468085106383,
-      "acc_stderr,none": 0.03132941789476426
+      "acc,none": 0.3276595744680851,
+      "acc_stderr,none": 0.030683020843230994
     },
     "mmlu_electrical_engineering": {
       "alias": "  - electrical_engineering",
-      "acc,none": 0.3103448275862069,
-      "acc_stderr,none": 0.03855289616378948
+      "acc,none": 0.30344827586206896,
+      "acc_stderr,none": 0.03831226048850335
     },
     "mmlu_elementary_mathematics": {
       "alias": "  - elementary_mathematics",
-      "acc,none": 0.2328042328042328,
-      "acc_stderr,none": 0.021765961672154555
+      "acc,none": 0.25396825396825395,
+      "acc_stderr,none": 0.02241804289111398
     },
     "mmlu_high_school_biology": {
       "alias": "  - high_school_biology",
-      "acc,none": 0.38387096774193546,
-      "acc_stderr,none": 0.027666182075539638
+      "acc,none": 0.44193548387096776,
+      "acc_stderr,none": 0.028251557906849706
     },
     "mmlu_high_school_chemistry": {
       "alias": "  - high_school_chemistry",
-      "acc,none": 0.22660098522167488,
-      "acc_stderr,none": 0.029454863835292968
+      "acc,none": 0.27586206896551724,
+      "acc_stderr,none": 0.0314471258167824
     },
     "mmlu_high_school_computer_science": {
       "alias": "  - high_school_computer_science",
@@ -311,23 +311,58 @@
     },
     "mmlu_high_school_mathematics": {
       "alias": "  - high_school_mathematics",
-      "acc,none": 0.2518518518518518,
-      "acc_stderr,none": 0.026466117538959884
+      "acc,none": 0.23333333333333334,
+      "acc_stderr,none": 0.02578787422095932
     },
     "mmlu_high_school_physics": {
       "alias": "  - high_school_physics",
-      "acc,none": 0.1986754966887417,
-      "acc_stderr,none": 0.032578473844367795
+      "acc,none": 0.2119205298013245,
+      "acc_stderr,none": 0.033367670865679794
     },
     "mmlu_high_school_statistics": {
       "alias": "  - high_school_statistics",
-      "acc,none": 0.1527777777777778,
-      "acc_stderr,none": 0.024536326026134234
+      "acc,none": 0.19444444444444445,
+      "acc_stderr,none": 0.026991454502036667
     },
     "mmlu_machine_learning": {
       "alias": "  - machine_learning",
-      "acc,none": 0.2857142857142857,
-      "acc_stderr,none": 0.042878587513404585
+      "acc,none": 0.3125,
+      "acc_stderr,none": 0.043994650575715215
+    },
+    "arc_challenge": {
+      "alias": "arc_challenge",
+      "acc,none": 0.40017064846416384,
+      "acc_stderr,none": 0.014317197787809148,
+      "acc_norm,none": 0.43430034129692835,
+      "acc_norm_stderr,none": 0.014484703048857371
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "alias": "lambada_openai_mt_stablelm_es",
+      "perplexity,none": 624.8509676638112,
+      "perplexity_stderr,none": 46.019618159668475,
+      "acc,none": 0.2239472152144382,
+      "acc_stderr,none": 0.00580805254635645
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "alias": "lambada_openai_mt_stablelm_en",
+      "perplexity,none": 7.37670715415303,
+      "perplexity_stderr,none": 0.21554175925863697,
+      "acc,none": 0.5616145934407142,
+      "acc_stderr,none": 0.006912884634249808
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "alias": "lambada_openai_mt_stablelm_de",
+      "perplexity,none": 136.9575913377389,
+      "perplexity_stderr,none": 7.32163998202889,
+      "acc,none": 0.246070250339608,
+      "acc_stderr,none": 0.006000771208158591
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "alias": "lambada_openai_mt_stablelm_fr",
+      "perplexity,none": 146.4944113457571,
+      "perplexity_stderr,none": 8.031987140146601,
+      "acc,none": 0.258490199883563,
+      "acc_stderr,none": 0.006099476489088157
     }
   },
   "configs": {
@@ -336,10 +371,7 @@
       "tag": [
         "multiple_choice"
       ],
-      "dataset_path": "hellaswag",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
+      "dataset_path": "Rowan/hellaswag",
       "training_split": "train",
       "validation_split": "validation",
       "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[\"ctx_a\"] + \" \" + doc[\"ctx_b\"].capitalize()\n        out_doc = {\n            \"query\": preprocess(doc[\"activity_label\"] + \": \" + ctx),\n            \"choices\": [preprocess(ending) for ending in doc[\"endings\"]],\n            \"gold\": int(doc[\"label\"]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
@@ -368,7 +400,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "arc_easy": {
@@ -407,16 +439,13 @@
       "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "winogrande": {
       "task": "winogrande",
       "dataset_path": "winogrande",
       "dataset_name": "winogrande_xl",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "training_split": "train",
       "validation_split": "validation",
       "doc_to_text": "def doc_to_text(doc):\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
@@ -440,7 +469,7 @@
       "doc_to_decontamination_query": "sentence",
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_abstract_algebra": {
@@ -449,9 +478,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "abstract_algebra",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -482,7 +508,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_anatomy": {
@@ -491,9 +517,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "anatomy",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -524,7 +547,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_astronomy": {
@@ -533,9 +556,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "astronomy",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -566,7 +586,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_business_ethics": {
@@ -575,9 +595,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "business_ethics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -608,7 +625,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_clinical_knowledge": {
@@ -617,9 +634,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "clinical_knowledge",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -650,7 +664,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_biology": {
@@ -659,9 +673,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_biology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -692,7 +703,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_chemistry": {
@@ -701,9 +712,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_chemistry",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -734,7 +742,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_computer_science": {
@@ -743,9 +751,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_computer_science",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -776,7 +781,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_mathematics": {
@@ -785,9 +790,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_mathematics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -818,7 +820,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_medicine": {
@@ -827,9 +829,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_medicine",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -860,7 +859,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_college_physics": {
@@ -869,9 +868,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "college_physics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -902,7 +898,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_computer_security": {
@@ -911,9 +907,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "computer_security",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -944,7 +937,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_conceptual_physics": {
@@ -953,9 +946,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "conceptual_physics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -986,7 +976,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_econometrics": {
@@ -995,9 +985,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "econometrics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1028,7 +1015,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_electrical_engineering": {
@@ -1037,9 +1024,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "electrical_engineering",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1070,7 +1054,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_elementary_mathematics": {
@@ -1079,9 +1063,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "elementary_mathematics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1112,7 +1093,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_formal_logic": {
@@ -1121,9 +1102,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "formal_logic",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1154,7 +1132,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_global_facts": {
@@ -1163,9 +1141,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "global_facts",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1196,7 +1171,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_biology": {
@@ -1205,9 +1180,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_biology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1238,7 +1210,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_chemistry": {
@@ -1247,9 +1219,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_chemistry",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1280,7 +1249,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_computer_science": {
@@ -1289,9 +1258,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_computer_science",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1322,7 +1288,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_european_history": {
@@ -1331,9 +1297,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_european_history",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1364,7 +1327,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_geography": {
@@ -1373,9 +1336,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_geography",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1406,7 +1366,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_government_and_politics": {
@@ -1415,9 +1375,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_government_and_politics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1448,7 +1405,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_macroeconomics": {
@@ -1457,9 +1414,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_macroeconomics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1490,7 +1444,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_mathematics": {
@@ -1499,9 +1453,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_mathematics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1532,7 +1483,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_microeconomics": {
@@ -1541,9 +1492,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_microeconomics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1574,7 +1522,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_physics": {
@@ -1583,9 +1531,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_physics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1616,7 +1561,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_psychology": {
@@ -1625,9 +1570,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_psychology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1658,7 +1600,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_statistics": {
@@ -1667,9 +1609,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_statistics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1700,7 +1639,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_us_history": {
@@ -1709,9 +1648,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_us_history",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1742,7 +1678,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_high_school_world_history": {
@@ -1751,9 +1687,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "high_school_world_history",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1784,7 +1717,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_human_aging": {
@@ -1793,9 +1726,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "human_aging",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1826,7 +1756,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_human_sexuality": {
@@ -1835,9 +1765,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "human_sexuality",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1868,7 +1795,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_international_law": {
@@ -1877,9 +1804,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "international_law",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1910,7 +1834,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_jurisprudence": {
@@ -1919,9 +1843,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "jurisprudence",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1952,7 +1873,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_logical_fallacies": {
@@ -1961,9 +1882,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "logical_fallacies",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -1994,7 +1912,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_machine_learning": {
@@ -2003,9 +1921,6 @@
       "tag": "mmlu_stem_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "machine_learning",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2036,7 +1951,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_management": {
@@ -2045,9 +1960,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "management",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2078,7 +1990,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_marketing": {
@@ -2087,9 +1999,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "marketing",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2120,7 +2029,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_medical_genetics": {
@@ -2129,9 +2038,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "medical_genetics",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2162,7 +2068,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_miscellaneous": {
@@ -2171,9 +2077,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "miscellaneous",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2204,7 +2107,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_moral_disputes": {
@@ -2213,9 +2116,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "moral_disputes",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2246,7 +2146,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_moral_scenarios": {
@@ -2255,9 +2155,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "moral_scenarios",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2288,7 +2185,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_nutrition": {
@@ -2297,9 +2194,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "nutrition",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2330,7 +2224,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_philosophy": {
@@ -2339,9 +2233,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "philosophy",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2372,7 +2263,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_prehistory": {
@@ -2381,9 +2272,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "prehistory",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2414,7 +2302,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_professional_accounting": {
@@ -2423,9 +2311,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "professional_accounting",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2456,7 +2341,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_professional_law": {
@@ -2465,9 +2350,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "professional_law",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2498,7 +2380,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_professional_medicine": {
@@ -2507,9 +2389,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "professional_medicine",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2540,7 +2419,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_professional_psychology": {
@@ -2549,9 +2428,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "professional_psychology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2582,7 +2458,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_public_relations": {
@@ -2591,9 +2467,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "public_relations",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2624,7 +2497,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_security_studies": {
@@ -2633,9 +2506,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "security_studies",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2666,7 +2536,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_sociology": {
@@ -2675,9 +2545,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "sociology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2708,7 +2575,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_us_foreign_policy": {
@@ -2717,9 +2584,6 @@
       "tag": "mmlu_social_sciences_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "us_foreign_policy",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2750,7 +2614,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_virology": {
@@ -2759,9 +2623,6 @@
       "tag": "mmlu_other_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "virology",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2792,7 +2653,7 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     },
     "mmlu_world_religions": {
@@ -2801,9 +2662,6 @@
       "tag": "mmlu_humanities_tasks",
       "dataset_path": "cais/mmlu",
       "dataset_name": "world_religions",
-      "dataset_kwargs": {
-        "trust_remote_code": true
-      },
       "test_split": "test",
       "fewshot_split": "dev",
       "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
@@ -2834,13 +2692,188 @@
       "should_decontaminate": false,
       "metadata": {
         "version": 1.0,
-        "pretrained": "allenai/OLMoE-1B-7B-0924"
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
+      }
+    },
+    "arc_challenge": {
+      "task": "arc_challenge",
+      "tag": [
+        "ai2_arc"
+      ],
+      "dataset_path": "allenai/ai2_arc",
+      "dataset_name": "ARC-Challenge",
+      "training_split": "train",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{choices.label.index(answerKey)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{choices.text}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
+      }
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "task": "lambada_openai_mt_stablelm_es",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "es",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
+      }
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "task": "lambada_openai_mt_stablelm_en",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "en",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
+      }
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "task": "lambada_openai_mt_stablelm_de",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "de",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
+      }
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "task": "lambada_openai_mt_stablelm_fr",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "fr",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "allenai/OLMoE-1B-7B-0125"
       }
     }
   },
   "model_info": {
     "model_type": "olmoe",
-    "model_path": "allenai/OLMoE-1B-7B-0924",
+    "model_path": "allenai/OLMoE-1B-7B-0125",
     "prob_threshold": 0.05
   }
 }

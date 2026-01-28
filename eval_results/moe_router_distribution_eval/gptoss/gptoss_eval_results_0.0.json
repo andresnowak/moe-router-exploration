@@ -328,6 +328,41 @@
       "alias": "  - machine_learning",
       "acc,none": 0.48214285714285715,
       "acc_stderr,none": 0.047427623612430116
+    },
+    "arc_challenge": {
+      "alias": "arc_challenge",
+      "acc,none": 0.45563139931740615,
+      "acc_stderr,none": 0.014553749939306847,
+      "acc_norm,none": 0.4812286689419795,
+      "acc_norm_stderr,none": 0.014601090150634058
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "alias": "lambada_openai_mt_stablelm_es",
+      "perplexity,none": 808.3967804229595,
+      "perplexity_stderr,none": 51.46590063258052,
+      "acc,none": 0.1789248981176014,
+      "acc_stderr,none": 0.00533997106223417
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "alias": "lambada_openai_mt_stablelm_en",
+      "perplexity,none": 187.04260723111653,
+      "perplexity_stderr,none": 7.606352851550055,
+      "acc,none": 0.20260042693576558,
+      "acc_stderr,none": 0.005599770783719992
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "alias": "lambada_openai_mt_stablelm_de",
+      "perplexity,none": 117.73151167038908,
+      "perplexity_stderr,none": 6.042024268750774,
+      "acc,none": 0.27168639627401514,
+      "acc_stderr,none": 0.006197338676240221
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "alias": "lambada_openai_mt_stablelm_fr",
+      "perplexity,none": 197.4202887356858,
+      "perplexity_stderr,none": 10.152200933778774,
+      "acc,none": 0.23035125169803997,
+      "acc_stderr,none": 0.005866156495536201
     }
   },
   "configs": {
@@ -2832,6 +2867,181 @@
       "output_type": "multiple_choice",
       "repeats": 1,
       "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "openai/gpt-oss-20b"
+      }
+    },
+    "arc_challenge": {
+      "task": "arc_challenge",
+      "tag": [
+        "ai2_arc"
+      ],
+      "dataset_path": "allenai/ai2_arc",
+      "dataset_name": "ARC-Challenge",
+      "training_split": "train",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{choices.label.index(answerKey)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{choices.text}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "openai/gpt-oss-20b"
+      }
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "task": "lambada_openai_mt_stablelm_es",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "es",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "openai/gpt-oss-20b"
+      }
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "task": "lambada_openai_mt_stablelm_en",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "en",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "openai/gpt-oss-20b"
+      }
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "task": "lambada_openai_mt_stablelm_de",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "de",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "openai/gpt-oss-20b"
+      }
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "task": "lambada_openai_mt_stablelm_fr",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "fr",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
       "metadata": {
         "version": 1.0,
         "pretrained": "openai/gpt-oss-20b"

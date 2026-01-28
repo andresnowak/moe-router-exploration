@@ -328,6 +328,41 @@
       "alias": "  - machine_learning",
       "acc,none": 0.42857142857142855,
       "acc_stderr,none": 0.04697113923010208
+    },
+    "arc_challenge": {
+      "alias": "arc_challenge",
+      "acc,none": 0.48976109215017066,
+      "acc_stderr,none": 0.014608326906285005,
+      "acc_norm,none": 0.523037542662116,
+      "acc_norm_stderr,none": 0.014595873205358168
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "alias": "lambada_openai_mt_stablelm_es",
+      "perplexity,none": 180.31804105489627,
+      "perplexity_stderr,none": 13.584987058083195,
+      "acc,none": 0.3964680768484378,
+      "acc_stderr,none": 0.006815007030417415
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "alias": "lambada_openai_mt_stablelm_en",
+      "perplexity,none": 4.435866100446493,
+      "perplexity_stderr,none": 0.1028313485897999,
+      "acc,none": 0.6803803609547836,
+      "acc_stderr,none": 0.006496877615168048
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "alias": "lambada_openai_mt_stablelm_de",
+      "perplexity,none": 29.115612190647845,
+      "perplexity_stderr,none": 1.429815438187757,
+      "acc,none": 0.4471181835823792,
+      "acc_stderr,none": 0.006926907565884985
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "alias": "lambada_openai_mt_stablelm_fr",
+      "perplexity,none": 30.20766538650517,
+      "perplexity_stderr,none": 1.4871973837808972,
+      "acc,none": 0.44964098583349504,
+      "acc_stderr,none": 0.006930555736225104
     }
   },
   "configs": {
@@ -2832,6 +2867,181 @@
       "output_type": "multiple_choice",
       "repeats": 1,
       "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "arcee-ai/Trinity-Nano-Base"
+      }
+    },
+    "arc_challenge": {
+      "task": "arc_challenge",
+      "tag": [
+        "ai2_arc"
+      ],
+      "dataset_path": "allenai/ai2_arc",
+      "dataset_name": "ARC-Challenge",
+      "training_split": "train",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "Question: {{question}}\nAnswer:",
+      "doc_to_target": "{{choices.label.index(answerKey)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{choices.text}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "arcee-ai/Trinity-Nano-Base"
+      }
+    },
+    "lambada_openai_mt_stablelm_es": {
+      "task": "lambada_openai_mt_stablelm_es",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "es",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "arcee-ai/Trinity-Nano-Base"
+      }
+    },
+    "lambada_openai_mt_stablelm_en": {
+      "task": "lambada_openai_mt_stablelm_en",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "en",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "arcee-ai/Trinity-Nano-Base"
+      }
+    },
+    "lambada_openai_mt_stablelm_de": {
+      "task": "lambada_openai_mt_stablelm_de",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "de",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "arcee-ai/Trinity-Nano-Base"
+      }
+    },
+    "lambada_openai_mt_stablelm_fr": {
+      "task": "lambada_openai_mt_stablelm_fr",
+      "tag": "lambada_multilingual_stablelm",
+      "dataset_path": "EleutherAI/lambada_multilingual_stablelm",
+      "dataset_name": "fr",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
       "metadata": {
         "version": 1.0,
         "pretrained": "arcee-ai/Trinity-Nano-Base"
