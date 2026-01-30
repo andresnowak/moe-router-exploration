@@ -345,10 +345,9 @@ class RoutingDistributionTracker:
         self.num_experts = num_experts
         self.top_k = cfg.num_experts_per_tok
 
-        # Dims for the result will be [L, E, [0, total_tokens]] (so for each token we will know the probabilities of being routed to each expert)
-        # for now we don't care about which token it is (as this would explode the memory usage)
-        # Store as lists of tensors, concatenate at the end for better performance
+        # Store probabilities and token IDs separately for each layer/expert
         self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
+        self.token_ids = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
 
     def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
         """
@@ -375,6 +374,9 @@ class RoutingDistributionTracker:
             # Expand non_pad_mask to match the K dimension: [B*S] -> [B*S*K]
             non_pad_mask_expanded = non_pad_mask.unsqueeze(-1).expand(B * S, indices.size(-1)).reshape(-1)  # [B*S*K]
 
+            # Expand token IDs to match the K dimension: [B*S] -> [B*S*K]
+            token_ids_expanded = input_ids.view(-1).unsqueeze(-1).expand(B * S, indices.size(-1)).reshape(-1)  # [B*S*K]
+
             indices = indices.view(-1)  # (B*S*K)
             probs = probs.view(-1)  # (B*S*K)
 
@@ -383,32 +385,41 @@ class RoutingDistributionTracker:
                 # Find all positions where this expert appears (across all ranks) and is not a padding token
                 expert_mask = (indices == expert_idx) & non_pad_mask_expanded  # [B*S*K]
                 if expert_mask.any():
-                    # Get the probabilities where this expert was selected
+                    # Get the probabilities and token IDs where this expert was selected
                     expert_probs = probs[expert_mask]  # [num_occurrences]
+                    expert_token_ids = token_ids_expanded[expert_mask]  # [num_occurrences]
                     self.values[layer_num][expert_idx].append(expert_probs)
+                    self.token_ids[layer_num][expert_idx].append(expert_token_ids)
 
     def save_distributions(self, out_dir: str):
         """
         Save the collected distributions to disk.
-        Saves a single file with all layer/expert probability distributions.
+        Saves a single file with all layer/expert probability distributions and token IDs.
         """
         import os
         os.makedirs(out_dir, exist_ok=True)
 
-        # Finalize if needed (convert lists to tensors)
+        # Finalize: concatenate all batches for each layer/expert
+        final_values = [[None for _ in range(self.num_experts)] for _ in range(self.num_layers)]
         for layer in range(self.num_layers):
             for expert in range(self.num_experts):
                 if self.values[layer][expert]:
-                    self.values[layer][expert] = torch.cat(self.values[layer][expert], dim=0) # concatenate all the batches
+                    final_values[layer][expert] = {
+                        'token_ids': torch.cat(self.token_ids[layer][expert], dim=0),
+                        'probs': torch.cat(self.values[layer][expert], dim=0)
+                    }
                 else:
-                    self.values[layer][expert] = torch.tensor([])
+                    final_values[layer][expert] = {
+                        'token_ids': torch.tensor([], dtype=torch.long),
+                        'probs': torch.tensor([], dtype=torch.float32)
+                    }
 
         # Save as a nested structure
         save_dict = {
             'num_layers': self.num_layers,
             'num_experts': self.num_experts,
             'top_k': self.top_k,
-            'distributions': self.values  # [L][E][tensor of probs (length for each expert is max total amount of tokens in dataset)]
+            'distributions': final_values  # [L][E][dict with 'token_ids' and 'probs' tensors]
         }
 
         torch.save(save_dict, os.path.join(out_dir, 'router_distributions.pt'))
@@ -416,3 +427,4 @@ class RoutingDistributionTracker:
     def reset(self):
         """Clear all accumulated distributions."""
         self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
+        self.token_ids = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
