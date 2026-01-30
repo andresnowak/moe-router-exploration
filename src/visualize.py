@@ -139,6 +139,7 @@ def plot_router_distribution(global_probs: torch.Tensor, bin_edges: List[float] 
 
     Args:
         global_probs: Tensor of router probabilities
+        bin_edges: Probability bin edges
     """
 
     # Count values in each bin
@@ -148,10 +149,14 @@ def plot_router_distribution(global_probs: torch.Tensor, bin_edges: List[float] 
     # Create labels for each bin
     labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(len(bin_edges)-1)]
 
-    # Create bar chart with equal width bars
+    # Use a colormap for the bins
+    num_bins = len(bin_edges) - 1
+    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+
+    # Create bar chart with equal width bars and different colors
     plt.figure(figsize=(14, 6))
     x_pos = np.arange(len(labels))
-    plt.bar(x_pos, fraction, alpha=0.7, edgecolor='black')
+    plt.bar(x_pos, fraction, color=colors, edgecolor='black')
     plt.title("Router score Distribution across all Layers, Experts, and Subjects (When expert is chosen in Top-K)")
     plt.xlabel("Routing score Range")
     plt.ylabel("Fraction")
@@ -162,45 +167,73 @@ def plot_router_distribution(global_probs: torch.Tensor, bin_edges: List[float] 
     plt.show()
 
 
-def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor]], layer: int, ncols: int = 6, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
+def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor]], layer: int, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
     """
-    Plot grid of histograms showing router probability distribution per expert.
+    Plot stacked bar chart showing router probability distribution per expert.
+    Each expert has one bar with colored segments representing different probability bins.
 
     Args:
-        per_expert_probs: List of tensors, one per expert
-        ncols: Number of columns in subplot grid
+        per_expert_probs: List of lists of tensors, one per layer per expert
+        layer: Layer index to plot
+        bin_edges: Probability bin edges used for binning
     """
     # Create labels for each bin
     labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(len(bin_edges)-1)]
 
     num_experts = len(per_expert_probs[layer])
-    nrows = (num_experts + ncols - 1) // ncols  # Ceiling division
+    num_bins = len(bin_edges) - 1
 
-    fig, axes = plt.subplots(nrows, ncols, figsize=(5*ncols, 4*nrows))
-    axes = axes.flatten() if num_experts > 1 else [axes]
+    # Compute bin fractions for each expert
+    data = np.zeros((num_experts, num_bins))
 
     for idx, probs in enumerate(per_expert_probs[layer]):
         # Count values in each bin
         counts, _ = np.histogram(probs.numpy(), bins=bin_edges)
-        fraction = counts / counts.sum()  # Normalize to get probabilities
+        total = counts.sum()
+        fraction = counts / total if total > 0 else counts
+        data[idx] = fraction
 
-        # Create bar chart with equal width bars
-        x_pos = np.arange(len(labels))
+    # Create stacked bar chart
+    fig, ax = plt.subplots(figsize=(16, 8))
 
-        axes[idx].bar(x_pos, fraction, alpha=0.7, edgecolor='black')
-        axes[idx].set_title(f"Expert {idx}")
-        axes[idx].set_xlabel("Routing score Range")
-        axes[idx].set_ylabel("Fraction")
-        axes[idx].set_xticks(x_pos)
-        axes[idx].set_xticklabels(labels, rotation=45, ha='right')
-        axes[idx].grid(True, alpha=0.3, axis='y')
+    x_pos = np.arange(num_experts)
+    bottom = np.zeros(num_experts)
 
-    # Hide unused subplots
-    for idx in range(num_experts, len(axes)):
-        axes[idx].axis('off')
+    # Use a colormap for the bins
+    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
 
-    fig.suptitle(f"Router score Distribution per Expert (when expert is in the top-k) - Layer {layer}", fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.98])  # Leave space at top for suptitle
+    # Stack each bin on top of the previous one
+    for bin_idx in range(num_bins):
+        ax.bar(
+            x_pos,
+            data[:, bin_idx],
+            bottom=bottom,
+            label=labels[bin_idx],
+            color=colors[bin_idx],
+            edgecolor='white',
+            linewidth=0.5,
+            width=0.6
+        )
+        bottom += data[:, bin_idx]
+
+    ax.set_xlabel("Expert", fontsize=13)
+    ax.set_ylabel("Fraction of Router Scores", fontsize=13)
+    ax.set_title(f"Router Score Distribution per Expert (when expert is in the top-k) - Layer {layer}", fontsize=15)
+
+    # Handle tick labels based on number of experts
+    if num_experts > 32:
+        # Show every 4th tick label for many experts
+        tick_step = 4
+        ax.set_xticks(x_pos[::tick_step])
+        ax.set_xticklabels([f"E{i}" for i in range(0, num_experts, tick_step)], fontsize=9)
+    else:
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f"E{i}" for i in range(num_experts)], fontsize=10)
+
+    ax.legend(title="Routing Score Range", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=9)
+    ax.grid(True, alpha=0.3, axis='y')
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -247,7 +280,8 @@ def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], bin_
             label=labels[bin_idx],
             color=colors[bin_idx],
             edgecolor='white',
-            linewidth=0.5
+            linewidth=0.5,
+            width=0.6
         )
         bottom += data[:, bin_idx]
 
