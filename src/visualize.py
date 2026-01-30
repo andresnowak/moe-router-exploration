@@ -151,7 +151,7 @@ def plot_router_distribution(global_probs: torch.Tensor, bin_edges: List[float] 
 
     # Use a colormap for the bins
     num_bins = len(bin_edges) - 1
-    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+    colors = plt.cm.tab20(np.linspace(0, 1, num_bins))
 
     # Create bar chart with equal width bars and different colors
     plt.figure(figsize=(14, 6))
@@ -200,7 +200,7 @@ def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor
     bottom = np.zeros(num_experts)
 
     # Use a colormap for the bins
-    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+    colors = plt.cm.tab20(np.linspace(0, 1, num_bins))
 
     # Stack each bin on top of the previous one
     for bin_idx in range(num_bins):
@@ -212,7 +212,7 @@ def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor
             color=colors[bin_idx],
             edgecolor='white',
             linewidth=0.5,
-            width=0.6
+            width=0.8
         )
         bottom += data[:, bin_idx]
 
@@ -269,7 +269,7 @@ def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], bin_
     bottom = np.zeros(num_layers)
 
     # Use a colormap for the bins
-    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+    colors = plt.cm.tab20(np.linspace(0, 1, num_bins))
 
     # Stack each bin on top of the previous one
     for bin_idx in range(num_bins):
@@ -281,7 +281,7 @@ def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], bin_
             color=colors[bin_idx],
             edgecolor='white',
             linewidth=0.5,
-            width=0.6
+            width=0.8
         )
         bottom += data[:, bin_idx]
 
@@ -295,6 +295,148 @@ def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], bin_
 
     plt.tight_layout()
     plt.show()
+
+
+def plot_deactivated_experts_by_threshold(
+    subject_list: List[dict],
+    thresholds: List[float]
+):
+    """
+    Plot line chart showing mean number of experts (out of top_k) that would be deactivated
+    per token per layer, for multiple probability thresholds, with std as shaded area.
+
+    Args:
+        subject_list: List of dicts containing router distribution data with 'distributions', 'num_layers', 'num_experts', 'top_k'
+        thresholds: List of probability thresholds below which experts are deactivated (can also pass a single float)
+    """
+    if not subject_list:
+        print("No data provided")
+        return
+
+    # Handle single threshold
+    if isinstance(thresholds, (int, float)):
+        thresholds = [thresholds]
+
+    num_layers = subject_list[0]['num_layers']
+    top_k = subject_list[0]['top_k']
+
+    # Build token occurrences once (independent of threshold)
+    layer_token_occurrences = []
+
+    for layer in range(num_layers):
+        # For each token occurrence, we need all K experts with their probs
+        token_occurrences = {}  # (token_id, occurrence_idx) -> {rank: prob}
+
+        # Iterate over all subjects
+        for subject in subject_list:
+            distributions = subject['distributions']
+            num_experts = subject['num_experts']
+
+            for expert_idx in range(num_experts):
+                expert_data = distributions[layer][expert_idx]
+                if expert_data is None or not isinstance(expert_data, dict):
+                    continue
+
+                token_ids = expert_data.get('token_ids', torch.tensor([]))
+                probs = expert_data.get('probs', torch.tensor([]))
+                ranks = expert_data.get('ranks', torch.tensor([]))
+
+                if len(token_ids) == 0:
+                    continue
+
+                # Reset occurrence counter for this expert's pass
+                local_token_occurrence = {}
+
+                # Each entry corresponds to one instance where this expert was selected
+                for tok_id, prob, rank in zip(token_ids.tolist(), probs.tolist(), ranks.tolist()):
+                    # Track how many times we've seen this token in THIS expert's data
+                    if tok_id not in local_token_occurrence:
+                        local_token_occurrence[tok_id] = 0
+                    else:
+                        local_token_occurrence[tok_id] += 1
+
+                    occ_idx = local_token_occurrence[tok_id]
+                    key = (tok_id, occ_idx)
+
+                    if key not in token_occurrences:
+                        token_occurrences[key] = {}
+
+                    # Store this rank's probability
+                    token_occurrences[key][int(rank)] = prob
+
+        layer_token_occurrences.append(token_occurrences)
+
+    # Compute stats for each threshold
+    all_threshold_stats = {}
+
+    for threshold in thresholds:
+        layer_stats = []
+
+        for layer in range(num_layers):
+            token_occurrences = layer_token_occurrences[layer]
+
+            # Count deactivations for each token occurrence in this layer
+            all_deactivation_counts = []
+
+            for (tok_id, occ_idx), rank_probs in token_occurrences.items():
+                # Count how many ranks have prob below threshold
+                deactivated = sum(1 for rank, prob in rank_probs.items() if prob < threshold)
+                all_deactivation_counts.append(deactivated)
+
+            if len(all_deactivation_counts) > 0:
+                deactivation_counts = np.array(all_deactivation_counts)
+                layer_stats.append({
+                    'mean': deactivation_counts.mean(),
+                    'std': deactivation_counts.std(),
+                    'min': deactivation_counts.min(),
+                    'max': deactivation_counts.max(),
+                    'num_tokens': len(deactivation_counts)
+                })
+            else:
+                layer_stats.append({'mean': 0, 'std': 0, 'min': 0, 'max': 0, 'num_tokens': 0})
+
+        all_threshold_stats[threshold] = layer_stats
+
+    # Create plot
+    fig, ax = plt.subplots(figsize=(16, 8))
+
+    x_pos = np.arange(num_layers)
+    colors = plt.cm.tab10(np.linspace(0, 1, len(thresholds)))
+
+    for idx, threshold in enumerate(thresholds):
+        layer_stats = all_threshold_stats[threshold]
+        means = np.array([stats['mean'] for stats in layer_stats])
+        stds = np.array([stats['std'] for stats in layer_stats])
+
+        # Plot line with shaded std
+        ax.plot(x_pos, means, label=f'Threshold {threshold:.3f}',
+                linewidth=2, marker='o', markersize=4, color=colors[idx])
+        ax.fill_between(x_pos, means - stds, means + stds, alpha=0.2, color=colors[idx])
+
+        # Add lines for std boundaries
+        ax.plot(x_pos, means - stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.6)
+        ax.plot(x_pos, means + stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.6)
+
+    ax.set_xlabel('Layer', fontsize=13)
+    ax.set_ylabel('Mean Number of Experts Deactivated (out of K)', fontsize=13)
+    ax.set_title('Mean Deactivated TopK Experts per Token by Layer', fontsize=15)
+
+    if num_layers > 40:
+        tick_step = 4
+        ax.set_xticks(x_pos[::tick_step])
+        ax.set_xticklabels([f'L{i}' for i in range(0, num_layers, tick_step)], fontsize=9)
+    else:
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f'L{i}' for i in range(num_layers)], fontsize=10)
+
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_ylim(0, top_k)
+
+    plt.tight_layout()
+    plt.show()
+
+    return all_threshold_stats
 
 
 # For now I think this one is not good, as it takes to much time to compute and plot
@@ -350,7 +492,7 @@ def plot_average_experts_per_range_by_layer(
     bottom = np.zeros(num_layers)
 
     # Use a colormap for the bins
-    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+    colors = plt.cm.tab20(np.linspace(0, 1, num_bins))
 
     # Stack each bin on top of the previous one
     for bin_idx in range(num_bins):
@@ -368,8 +510,16 @@ def plot_average_experts_per_range_by_layer(
     ax.set_xlabel("Layer", fontsize=13)
     ax.set_ylabel("Average Number of Experts per Token", fontsize=13)
     ax.set_title("Average Number of Experts per Token in Each Probability Range by Layer", fontsize=15)
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels([f"L{i}" for i in range(num_layers)], fontsize=10)
+
+    if num_layers > 40:
+        # Show every 4th tick label for many layers
+        tick_step = 4
+        ax.set_xticks(x_pos[::tick_step])
+        ax.set_xticklabels([f"L{i}" for i in range(0, num_layers, tick_step)], fontsize=9)
+    else:
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f"L{i}" for i in range(num_layers)], fontsize=10)
+
     ax.legend(title="Routing Score Range", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=9)
     ax.grid(True, alpha=0.3, axis='y')
 
