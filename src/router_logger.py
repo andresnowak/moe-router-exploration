@@ -345,9 +345,10 @@ class RoutingDistributionTracker:
         self.num_experts = num_experts
         self.top_k = cfg.num_experts_per_tok
 
-        # Store probabilities and token IDs separately for each layer/expert
+        # Store probabilities, token IDs, and rank positions separately for each layer/expert
         self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
         self.token_ids = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
+        self.ranks = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
 
     def update(self, batch: Dict[str, torch.Tensor], routing_logs: Dict):
         """
@@ -370,12 +371,16 @@ class RoutingDistributionTracker:
             indices = info["indices"].long().cpu()  # (B, S, K)
             layer_num = info["layer_num"]
             probs = info["probs"].float().cpu()  # (B, S, K)
+            K = indices.size(-1)
 
             # Expand non_pad_mask to match the K dimension: [B*S] -> [B*S*K]
-            non_pad_mask_expanded = non_pad_mask.unsqueeze(-1).expand(B * S, indices.size(-1)).reshape(-1)  # [B*S*K]
+            non_pad_mask_expanded = non_pad_mask.unsqueeze(-1).expand(B * S, K).reshape(-1)  # [B*S*K]
 
             # Expand token IDs to match the K dimension: [B*S] -> [B*S*K]
-            token_ids_expanded = input_ids.view(-1).unsqueeze(-1).expand(B * S, indices.size(-1)).reshape(-1)  # [B*S*K]
+            token_ids_expanded = input_ids.view(-1).unsqueeze(-1).expand(B * S, K).reshape(-1)  # [B*S*K]
+
+            # Create rank positions: [0, 1, ..., K-1] repeated for each token in batch
+            rank_positions = torch.arange(K, device='cpu').unsqueeze(0).expand(B * S, K).reshape(-1)  # [B*S*K]
 
             indices = indices.view(-1)  # (B*S*K)
             probs = probs.view(-1)  # (B*S*K)
@@ -385,11 +390,13 @@ class RoutingDistributionTracker:
                 # Find all positions where this expert appears (across all ranks) and is not a padding token
                 expert_mask = (indices == expert_idx) & non_pad_mask_expanded  # [B*S*K]
                 if expert_mask.any():
-                    # Get the probabilities and token IDs where this expert was selected
+                    # Get the probabilities, token IDs, and ranks where this expert was selected
                     expert_probs = probs[expert_mask]  # [num_occurrences]
                     expert_token_ids = token_ids_expanded[expert_mask]  # [num_occurrences]
+                    expert_ranks = rank_positions[expert_mask]  # [num_occurrences]
                     self.values[layer_num][expert_idx].append(expert_probs)
                     self.token_ids[layer_num][expert_idx].append(expert_token_ids)
+                    self.ranks[layer_num][expert_idx].append(expert_ranks)
 
     def save_distributions(self, out_dir: str):
         """
@@ -406,12 +413,14 @@ class RoutingDistributionTracker:
                 if self.values[layer][expert]:
                     final_values[layer][expert] = {
                         'token_ids': torch.cat(self.token_ids[layer][expert], dim=0),
-                        'probs': torch.cat(self.values[layer][expert], dim=0)
+                        'probs': torch.cat(self.values[layer][expert], dim=0),
+                        'ranks': torch.cat(self.ranks[layer][expert], dim=0)
                     }
                 else:
                     final_values[layer][expert] = {
                         'token_ids': torch.tensor([], dtype=torch.long),
-                        'probs': torch.tensor([], dtype=torch.float32)
+                        'probs': torch.tensor([], dtype=torch.float32),
+                        'ranks': torch.tensor([], dtype=torch.int32)
                     }
 
         # Save as a nested structure
@@ -419,7 +428,7 @@ class RoutingDistributionTracker:
             'num_layers': self.num_layers,
             'num_experts': self.num_experts,
             'top_k': self.top_k,
-            'distributions': final_values  # [L][E][dict with 'token_ids' and 'probs' tensors]
+            'distributions': final_values  # [L][E][dict with 'token_ids', 'probs', and 'ranks' tensors]
         }
 
         torch.save(save_dict, os.path.join(out_dir, 'router_distributions.pt'))
@@ -428,3 +437,4 @@ class RoutingDistributionTracker:
         """Clear all accumulated distributions."""
         self.values = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
         self.token_ids = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
+        self.ranks = [[[] for _ in range(self.num_experts)] for _ in range(self.num_layers)]
