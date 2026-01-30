@@ -22,8 +22,12 @@ def get_global_router_distribution(subject_list: List[Dict]) -> torch.Tensor:
         for layer in range(num_layers):
             for expert in range(num_experts):
                 values = dict_layer_probs[layer][expert]
-                # Handle both cases: list of tensors or single tensor
-                if isinstance(values, list):
+                if isinstance(values, dict):
+                    probs = values['probs']
+                    if len(probs) > 0:
+                        all_probs.append(probs)
+                # Old format compatibility
+                elif isinstance(values, list):
                     all_probs.extend(values)
                 elif len(values) > 0:  # non-empty tensor
                     all_probs.append(values)
@@ -56,8 +60,12 @@ def get_per_expert_router_distribution(subject_list: List[Dict]) -> List[List[to
         for layer in range(num_layers):
             for expert in range(num_experts):
                 values = dict_layer_probs[layer][expert]
-                # Handle both cases: list of tensors or single tensor
-                if isinstance(values, list):
+                if isinstance(values, dict):
+                    probs = values['probs']
+                    if len(probs) > 0:
+                        expert_probs[layer][expert].append(probs)
+                # Old format compatibility
+                elif isinstance(values, list):
                     raise NotImplementedError("List of tensors not supported in per-expert distribution")
                 elif len(values) > 0:  # non-empty tensor
                     expert_probs[layer][expert].append(values)
@@ -87,10 +95,69 @@ def get_per_layer_router_distribution(subject_list: List[Dict]) -> List[torch.Te
         for layer in range(num_layers):
             for expert in range(num_experts):
                 values = dict_layer_probs[layer][expert]
-                if isinstance(values, list):
+                if isinstance(values, dict):
+                    probs = values['probs']
+                    if len(probs) > 0:
+                        layer_probs[layer].append(probs)
+                # Old format compatibility
+                elif isinstance(values, list):
                     layer_probs[layer].extend(values)
                 elif len(values) > 0:
                     layer_probs[layer].append(values)
 
     layer_probs = [torch.cat(probs, dim=0) if probs else torch.tensor([]) for probs in layer_probs]
     return layer_probs
+
+
+def get_average_experts_per_token_by_layer(
+    subject_list: List[Dict]
+) -> List[Dict[str, torch.Tensor]]:
+    """
+    For each layer, collect all (token_id, probability) pairs for analysis.
+
+    Args:
+        subject_list: List of dicts containing router distribution data with token_ids and probs
+
+    Returns:
+        List of dicts (one per layer), each containing:
+            - 'token_probs': dict mapping token_id -> list of probabilities from all experts
+            - 'num_tokens': total number of unique tokens processed in this layer
+    """
+    num_layers = subject_list[0]["num_layers"]
+    num_experts = subject_list[0]["num_experts"]
+
+    layer_results = []
+
+    for layer in range(num_layers):
+        # Track for each unique token: all probability values across experts
+        token_probs = {}  # token_id -> list of probabilities
+
+        for subject in subject_list:
+            dict_layer_probs = subject["distributions"]
+
+            for expert in range(num_experts):
+                expert_data = dict_layer_probs[layer][expert]
+
+                # Handle new dict structure with token_ids and probs
+                if isinstance(expert_data, dict):
+                    token_ids = expert_data['token_ids']
+                    probs = expert_data['probs']
+                else:
+                    # Old format compatibility (just probs, no token tracking)
+                    continue
+
+                if len(token_ids) == 0:
+                    continue
+
+                # For each (token_id, prob) pair
+                for tok_id, prob in zip(token_ids.tolist(), probs.tolist()):
+                    if tok_id not in token_probs:
+                        token_probs[tok_id] = []
+                    token_probs[tok_id].append(prob)
+
+        layer_results.append({
+            'token_probs': token_probs,
+            'num_tokens': len(token_probs)
+        })
+
+    return layer_results

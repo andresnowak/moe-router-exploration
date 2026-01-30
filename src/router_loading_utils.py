@@ -16,7 +16,7 @@ def create_dataset_routing_statistics(root_path: str) -> List[Dict[str, List[tor
             assert len(dirs) == 2
 
             print(os.path.join(root_path, rel_path))
-            list_tensor = torch.load(os.path.join(root_path, rel_path)) # [L][E][tensor of probs (length for each expert is max total amount of tokens in dataset)]
+            list_tensor = torch.load(os.path.join(root_path, rel_path)) # [L][E][dict with 'token_ids' and 'probs' tensors]
             list_tensors.append(list_tensor)
         else:
             continue

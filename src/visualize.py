@@ -204,44 +204,140 @@ def plot_per_expert_router_distribution(per_expert_probs: List[List[torch.Tensor
     plt.show()
 
 
-def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], ncols: int = 4, bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
+def plot_per_layer_router_distribution(per_layer_probs: List[torch.Tensor], bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]):
     """
-    Plot grid of histograms showing router probability distribution per layer.
+    Plot stacked bar chart showing router probability distribution per layer.
+    Each layer has one bar with colored segments representing different probability bins.
 
     Args:
         per_layer_probs: List of tensors, one per layer
-        ncols: Number of columns in subplot grid
+        bin_edges: Probability bin edges used for binning
     """
     # Create labels for each bin
     labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(len(bin_edges)-1)]
 
     num_layers = len(per_layer_probs)
-    nrows = (num_layers + ncols - 1) // ncols
+    num_bins = len(bin_edges) - 1
 
-    fig, axes = plt.subplots(nrows, ncols, figsize=(5*ncols, 4*nrows))
-    axes = axes.flatten() if num_layers > 1 else [axes]
+    # Compute bin fractions for each layer
+    data = np.zeros((num_layers, num_bins))
 
     for layer, probs in enumerate(per_layer_probs):
         # Count values in each bin
         counts, _ = np.histogram(probs.numpy(), bins=bin_edges)
         total = counts.sum()
         fraction = counts / total if total > 0 else counts
+        data[layer] = fraction
 
-        # Create bar chart with equal width bars
-        x_pos = np.arange(len(labels))
+    # Create stacked bar chart
+    fig, ax = plt.subplots(figsize=(16, 8))
 
-        axes[layer].bar(x_pos, fraction, alpha=0.7, edgecolor='black')
-        axes[layer].set_title(f"Layer {layer}")
-        axes[layer].set_xlabel("Routing score Range")
-        axes[layer].set_ylabel("Fraction")
-        axes[layer].set_xticks(x_pos)
-        axes[layer].set_xticklabels(labels, rotation=45, ha='right')
-        axes[layer].grid(True, alpha=0.3, axis='y')
+    x_pos = np.arange(num_layers)
+    bottom = np.zeros(num_layers)
 
-    # Hide unused subplots
-    for idx in range(num_layers, len(axes)):
-        axes[idx].axis('off')
+    # Use a colormap for the bins
+    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
 
-    fig.suptitle("Router score Distribution per Layer (aggregated across all experts and subjects)", fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.98])
+    # Stack each bin on top of the previous one
+    for bin_idx in range(num_bins):
+        ax.bar(
+            x_pos,
+            data[:, bin_idx],
+            bottom=bottom,
+            label=labels[bin_idx],
+            color=colors[bin_idx],
+            edgecolor='white',
+            linewidth=0.5
+        )
+        bottom += data[:, bin_idx]
+
+    ax.set_xlabel("Layer", fontsize=13)
+    ax.set_ylabel("Fraction of Router Scores", fontsize=13)
+    ax.set_title("Router Score Distribution per Layer (aggregated across all experts and subjects)", fontsize=15)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels([f"L{i}" for i in range(num_layers)], fontsize=10)
+    ax.legend(title="Routing Score Range", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=9)
+    ax.grid(True, alpha=0.3, axis='y')
+
+    plt.tight_layout()
+    plt.show()
+
+
+# For now I think this one is not good, as it takes to much time to compute and plot
+def plot_average_experts_per_range_by_layer(
+    layer_results: List[dict],
+    bin_edges: List[float] = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+):
+    """
+    Plot stacked bar chart showing average number of experts per token in each probability range, per layer.
+    Each layer has one stacked bar with different colored segments for each probability bin.
+
+    Args:
+        layer_results: List of dicts from get_average_experts_per_token_by_layer
+        bin_edges: Probability bin edges used for binning
+    """
+    num_layers = len(layer_results)
+    num_bins = len(bin_edges) - 1
+
+    # Create labels for each bin
+    labels = [f"{bin_edges[i]:.3f}-{bin_edges[i+1]:.3f}" for i in range(num_bins)]
+
+    # Process each layer to compute average experts per token in each bin
+    data = np.zeros((num_layers, num_bins))
+
+    for layer_idx, layer_result in enumerate(layer_results):
+        token_probs = layer_result['token_probs']
+
+        if not token_probs:
+            continue
+
+        # For each token, count how many experts fall into each bin
+        token_bin_counts = []
+
+        for tok_id, probs in token_probs.items():
+            bin_counts = np.zeros(num_bins)
+
+            # Count probabilities in each bin for this token
+            for prob in probs:
+                bin_idx = np.searchsorted(bin_edges[1:], prob, side='right')
+                bin_idx = min(bin_idx, num_bins - 1)
+                bin_counts[bin_idx] += 1
+
+            token_bin_counts.append(bin_counts)
+
+        # Average across all tokens in this layer
+        if token_bin_counts:
+            data[layer_idx] = np.mean(token_bin_counts, axis=0)
+
+    # Create stacked bar chart
+    fig, ax = plt.subplots(figsize=(16, 8))
+
+    x_pos = np.arange(num_layers)
+    bottom = np.zeros(num_layers)
+
+    # Use a colormap for the bins
+    colors = plt.cm.viridis(np.linspace(0, 1, num_bins))
+
+    # Stack each bin on top of the previous one
+    for bin_idx in range(num_bins):
+        ax.bar(
+            x_pos,
+            data[:, bin_idx],
+            bottom=bottom,
+            label=labels[bin_idx],
+            color=colors[bin_idx],
+            edgecolor='white',
+            linewidth=0.5
+        )
+        bottom += data[:, bin_idx]
+
+    ax.set_xlabel("Layer", fontsize=13)
+    ax.set_ylabel("Average Number of Experts per Token", fontsize=13)
+    ax.set_title("Average Number of Experts per Token in Each Probability Range by Layer", fontsize=15)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels([f"L{i}" for i in range(num_layers)], fontsize=10)
+    ax.legend(title="Routing Score Range", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=9)
+    ax.grid(True, alpha=0.3, axis='y')
+
+    plt.tight_layout()
     plt.show()
