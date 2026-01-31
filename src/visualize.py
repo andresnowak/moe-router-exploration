@@ -320,49 +320,38 @@ def plot_deactivated_experts_by_threshold(
     num_layers = subject_list[0]['num_layers']
     top_k = subject_list[0]['top_k']
 
-    # Build token occurrences once (independent of threshold)
+    # Build token occurrences once - simple and direct
     layer_token_occurrences = []
 
     for layer in range(num_layers):
-        # For each token occurrence, we need all K experts with their probs
-        token_occurrences = {}  # (token_id, occurrence_idx) -> {rank: prob}
+        token_occurrences = {}
 
-        # Iterate over all subjects
         for subject in subject_list:
             distributions = subject['distributions']
             num_experts = subject['num_experts']
 
             for expert_idx in range(num_experts):
                 expert_data = distributions[layer][expert_idx]
-                if expert_data is None or not isinstance(expert_data, dict):
+                if not isinstance(expert_data, dict):
                     continue
 
-                token_ids = expert_data.get('token_ids', torch.tensor([]))
-                probs = expert_data.get('probs', torch.tensor([]))
-                ranks = expert_data.get('ranks', torch.tensor([]))
+                token_ids = expert_data.get('token_ids')
+                probs = expert_data.get('probs')
+                ranks = expert_data.get('ranks')
 
-                if len(token_ids) == 0:
+                if token_ids is None or len(token_ids) == 0:
                     continue
 
-                # Reset occurrence counter for this expert's pass
-                local_token_occurrence = {}
+                local_counter = {}
 
-                # Each entry corresponds to one instance where this expert was selected
                 for tok_id, prob, rank in zip(token_ids.tolist(), probs.tolist(), ranks.tolist()):
-                    # Track how many times we've seen this token in THIS expert's data
-                    if tok_id not in local_token_occurrence:
-                        local_token_occurrence[tok_id] = 0
-                    else:
-                        local_token_occurrence[tok_id] += 1
+                    occ_idx = local_counter.get(tok_id, 0)
+                    local_counter[tok_id] = occ_idx + 1
 
-                    occ_idx = local_token_occurrence[tok_id]
                     key = (tok_id, occ_idx)
-
                     if key not in token_occurrences:
                         token_occurrences[key] = {}
-
-                    # Store this rank's probability
-                    token_occurrences[key][int(rank)] = prob
+                    token_occurrences[key][rank] = prob
 
         layer_token_occurrences.append(token_occurrences)
 
@@ -372,28 +361,24 @@ def plot_deactivated_experts_by_threshold(
     for threshold in thresholds:
         layer_stats = []
 
-        for layer in range(num_layers):
-            token_occurrences = layer_token_occurrences[layer]
-
-            # Count deactivations for each token occurrence in this layer
-            all_deactivation_counts = []
-
-            for (tok_id, occ_idx), rank_probs in token_occurrences.items():
-                # Count how many ranks have prob below threshold
-                deactivated = sum(1 for rank, prob in rank_probs.items() if prob < threshold)
-                all_deactivation_counts.append(deactivated)
-
-            if len(all_deactivation_counts) > 0:
-                deactivation_counts = np.array(all_deactivation_counts)
-                layer_stats.append({
-                    'mean': deactivation_counts.mean(),
-                    'std': deactivation_counts.std(),
-                    'min': deactivation_counts.min(),
-                    'max': deactivation_counts.max(),
-                    'num_tokens': len(deactivation_counts)
-                })
-            else:
+        for token_occurrences in layer_token_occurrences:
+            if not token_occurrences:
                 layer_stats.append({'mean': 0, 'std': 0, 'min': 0, 'max': 0, 'num_tokens': 0})
+                continue
+
+            deactivation_counts = [
+                sum(1 for p in rank_probs.values() if p < threshold)
+                for rank_probs in token_occurrences.values()
+            ]
+
+            deactivation_counts = np.array(deactivation_counts)
+            layer_stats.append({
+                'mean': float(deactivation_counts.mean()),
+                'std': float(deactivation_counts.std()),
+                'min': int(deactivation_counts.min()),
+                'max': int(deactivation_counts.max()),
+                'num_tokens': len(deactivation_counts)
+            })
 
         all_threshold_stats[threshold] = layer_stats
 
@@ -414,8 +399,8 @@ def plot_deactivated_experts_by_threshold(
         ax.fill_between(x_pos, means - stds, means + stds, alpha=0.2, color=colors[idx])
 
         # Add lines for std boundaries
-        ax.plot(x_pos, means - stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.6)
-        ax.plot(x_pos, means + stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.6)
+        ax.plot(x_pos, means - stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.7)
+        ax.plot(x_pos, means + stds, color=colors[idx], linewidth=0.8, linestyle='--', alpha=0.7)
 
     ax.set_xlabel('Layer', fontsize=13)
     ax.set_ylabel('Mean Number of Experts Deactivated (out of K)', fontsize=13)
